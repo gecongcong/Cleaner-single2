@@ -1,0 +1,240 @@
+0.7700	City( EUFAULA) // prior = 0.0161 ; delta = 0.7539
+0.7500	City( UNIONSPRINGS) // prior = 0.0161 ; delta = 0.7339
+0.7500	City( GEORGIANA) // prior = 0.0161 ; delta = 0.7339
+0.7400	City( DECATUR) // prior = 0.0161 ; delta = 0.7239
+0.7400	City( OZARK) // prior = 0.0161 ; delta = 0.7239
+0.7300	City( ANDALUSIA) // prior = 0.0161 ; delta = 0.7139
+0.7300	City( DADEVILLE) // prior = 0.0161 ; delta = 0.7139
+0.7200	City( BESSEMER) // prior = 0.0081 ; delta = 0.7119
+0.7200	City( FAIRHOPE) // prior = 0.0161 ; delta = 0.7039
+0.7200	City( ASHLAND) // prior = 0.0161 ; delta = 0.7039
+0.7200	City( TALLASSEE) // prior = 0.0161 ; delta = 0.7039
+0.7200	City( CENTRE) // prior = 0.0161 ; delta = 0.7039
+0.7200	City( EUTAW) // prior = 0.0161 ; delta = 0.7039
+0.7000	City( WEDOWEE) // prior = 0.0161 ; delta = 0.6839
+0.7000	City( FORTPAYNE) // prior = 0.0161 ; delta = 0.6839
+0.7000	City( GREENSBORO) // prior = 0.0161 ; delta = 0.6839
+0.7000	City( GADSDEN) // prior = 0.0321 ; delta = 0.6679
+0.6900	City( CULLMAN) // prior = 0.0161 ; delta = 0.6739
+0.6900	City( DEMOPOLIS) // prior = 0.0161 ; delta = 0.6739
+0.6900	City( CENTREVILLE) // prior = 0.0161 ; delta = 0.6739
+0.6800	City( BOAZ) // prior = 0.0161 ; delta = 0.6639
+0.6800	City( GROVEHILL) // prior = 0.0161 ; delta = 0.6639
+0.6800	City( TUSCALOOSA) // prior = 0.0161 ; delta = 0.6639
+0.6800	City( SCOTTSBORO) // prior = 0.0161 ; delta = 0.6639
+0.6800	City( MOBILE) // prior = 0.0481 ; delta = 0.6319
+0.6800	City( MOULTON) // prior = 0.0161 ; delta = 0.6639
+0.6800	City( BIRMINGHAM) // prior = 0.0961 ; delta = 0.5839
+0.6800	City( SHEFFIELD) // prior = 0.0161 ; delta = 0.6639
+0.6700	City( WETUMPKA) // prior = 0.0161 ; delta = 0.6539
+0.6700	City( PRATTVILLE) // prior = 0.0161 ; delta = 0.6539
+0.6700	City( JASPER) // prior = 0.0161 ; delta = 0.6539
+0.6700	City( CARROLLTON) // prior = 0.0161 ; delta = 0.6539
+0.6700	City( ENTERPRISE) // prior = 0.0161 ; delta = 0.6539
+0.6700	City( FLORENCE) // prior = 0.0161 ; delta = 0.6539
+0.6600	City( FOLEY) // prior = 0.0161 ; delta = 0.6439
+0.6600	City( ALABASTER) // prior = 0.0161 ; delta = 0.6439
+0.6600	City( HAMILTON) // prior = 0.0161 ; delta = 0.6439
+0.6600	City( DOTHAN) // prior = 0.0321 ; delta = 0.6279
+0.6500	City( CAMDEN) // prior = 0.0161 ; delta = 0.6339
+0.6500	City( MONTGOMERY) // prior = 0.0321 ; delta = 0.6179
+0.6500	City( BREWTON) // prior = 0.0161 ; delta = 0.6339
+0.6500	City( HUNTSVILLE) // prior = 0.0161 ; delta = 0.6339
+0.6500	City( FAYETTE) // prior = 0.0161 ; delta = 0.6339
+0.6400	City( ANNISTON) // prior = 0.0321 ; delta = 0.6079
+0.6400	City( GENEVA) // prior = 0.0161 ; delta = 0.6239
+0.6400	City( OPP) // prior = 0.0161 ; delta = 0.6239
+0.6400	City( LUVERNE) // prior = 0.0161 ; delta = 0.6239
+0.6300	City( WINFIELD) // prior = 0.0161 ; delta = 0.6139
+0.6200	City( TALLADEGA) // prior = 0.0161 ; delta = 0.6039
+0.6000	City( ALEXANDERCITY) // prior = 0.0161 ; delta = 0.5839
+0.5800	City( OPELIKA) // prior = 0.0161 ; delta = 0.5639
+0.5400	City( ATHENS) // prior = 0.0161 ; delta = 0.5239
+1.0000	PhoneNumber( 2057833800) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2563572111) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2053874000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2567372000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2568453150) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2514354700) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3343762205) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3346887271) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2563297100) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3346243024) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2519282375) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3347382140) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3346843655) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2055921000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2059216200) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2516331000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2059397000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2054877736) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2568257821) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2512753191) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3342894000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3347742601) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2567688400) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3343353374) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2563864556) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2054817000) // prior = 0.0081 ; delta = 0.9919
+1.0000	PhoneNumber( 3342836541) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2564944000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2057597111) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3343614267) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3345674311) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2569275531) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2053678111) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2562339292) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2053723388) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3342228466) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2565938310) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2514717110) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2058383122) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3342938000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2053258100) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2567614542) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2059344011) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2519493400) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3347938701) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2562651000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2059325966) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2563542131) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2059264881) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2562355121) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2563412000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2562358900) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2518678061) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2056208100) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2569742200) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3343470584) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3347935000) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 2562594444) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3342882100) // prior = 0.0161 ; delta = 0.9839
+1.0000	PhoneNumber( 3347493411) // prior = 0.0161 ; delta = 0.9839
+0.9900	PhoneNumber( 3346824131) // prior = 0.0161 ; delta = 0.9739
+0.9900	PhoneNumber( 2565435200) // prior = 0.0161 ; delta = 0.9739
+0.9900	PhoneNumber( 3344933541) // prior = 0.0161 ; delta = 0.9739
+0.0000	ProviderID(10016) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10012) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10022) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10029) // prior = 0.0174 ; delta = -0.0174
+0.0000	ProviderID(10019) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10011) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10018) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10001) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10007) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10005) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10006) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10024) // prior = 0.0181 ; delta = -0.0181
+0.0000	ProviderID(10021) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10008) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10023) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10108) // prior = 0.0171 ; delta = -0.0171
+0.0000	ProviderID(10109) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10100) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10101) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10112) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10110) // prior = 0.0134 ; delta = -0.0134
+0.0000	ProviderID(10113) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10114) // prior = 0.0071 ; delta = -0.0071
+0.0000	ProviderID(10092) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10090) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10097) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10095) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10102) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10103) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10091) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10104) // prior = 0.0178 ; delta = -0.0178
+0.0000	ProviderID(10086) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10083) // prior = 0.0148 ; delta = -0.0148
+0.0000	ProviderID(10087) // prior = 0.0171 ; delta = -0.0171
+0.0000	ProviderID(10085) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10073) // prior = 0.0171 ; delta = -0.0171
+0.0000	ProviderID(10099) // prior = 0.0141 ; delta = -0.0141
+0.0000	ProviderID(10078) // prior = 0.0171 ; delta = -0.0171
+0.0000	ProviderID(10079) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10059) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10056) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10062) // prior = 0.0184 ; delta = -0.0184
+0.0000	ProviderID(10058) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10051) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10089) // prior = 0.0154 ; delta = -0.0154
+0.0000	ProviderID(10055) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10052) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10035) // prior = 0.0168 ; delta = -0.0168
+0.0000	ProviderID(10032) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10036) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10034) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10065) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10061) // prior = 0.0171 ; delta = -0.0171
+0.0000	ProviderID(10033) // prior = 0.0144 ; delta = -0.0144
+0.0000	ProviderID(10069) // prior = 0.0174 ; delta = -0.0174
+0.0000	ProviderID(10045) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10046) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10049) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10047) // prior = 0.0181 ; delta = -0.0181
+0.0000	ProviderID(10038) // prior = 0.0161 ; delta = -0.0161
+0.0000	ProviderID(10039) // prior = 0.0164 ; delta = -0.0164
+0.0000	ProviderID(10044) // prior = 0.0158 ; delta = -0.0158
+0.0000	ProviderID(10040) // prior = 0.0168 ; delta = -0.0168
+0.6600	ZIPCode( 35161) // prior = 0.0161 ; delta = 0.6439
+0.6500	ZIPCode( 35570) // prior = 0.0161 ; delta = 0.6339
+0.6500	ZIPCode( 36853) // prior = 0.0161 ; delta = 0.6339
+0.6300	ZIPCode( 36467) // prior = 0.0161 ; delta = 0.6139
+0.6300	ZIPCode( 35957) // prior = 0.0161 ; delta = 0.6139
+0.6300	ZIPCode( 36330) // prior = 0.0161 ; delta = 0.6139
+0.6300	ZIPCode( 36251) // prior = 0.0161 ; delta = 0.6139
+0.6200	ZIPCode( 36301) // prior = 0.0161 ; delta = 0.6039
+0.6200	ZIPCode( 36089) // prior = 0.0161 ; delta = 0.6039
+0.6200	ZIPCode( 35021) // prior = 0.0081 ; delta = 0.6119
+0.6200	ZIPCode( 36360) // prior = 0.0161 ; delta = 0.6039
+0.6200	ZIPCode( 35968) // prior = 0.0161 ; delta = 0.6039
+0.6100	ZIPCode( 35447) // prior = 0.0161 ; delta = 0.5939
+0.6100	ZIPCode( 36420) // prior = 0.0161 ; delta = 0.5939
+0.6100	ZIPCode( 35007) // prior = 0.0161 ; delta = 0.5939
+0.6100	ZIPCode( 35211) // prior = 0.0161 ; delta = 0.5939
+0.6000	ZIPCode( 35903) // prior = 0.0161 ; delta = 0.5839
+0.6000	ZIPCode( 35901) // prior = 0.0161 ; delta = 0.5839
+0.6000	ZIPCode( 36078) // prior = 0.0161 ; delta = 0.5839
+0.5900	ZIPCode( 35960) // prior = 0.0161 ; delta = 0.5739
+0.5900	ZIPCode( 36426) // prior = 0.0161 ; delta = 0.5739
+0.5800	ZIPCode( 35042) // prior = 0.0161 ; delta = 0.5639
+0.5800	ZIPCode( 35205) // prior = 0.0161 ; delta = 0.5639
+0.5600	ZIPCode( 35660) // prior = 0.0161 ; delta = 0.5439
+0.5600	ZIPCode( 36305) // prior = 0.0161 ; delta = 0.5439
+0.5600	ZIPCode( 36532) // prior = 0.0161 ; delta = 0.5439
+0.5600	ZIPCode( 35401) // prior = 0.0161 ; delta = 0.5439
+0.5500	ZIPCode( 36608) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 36067) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 36049) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 36207) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 35650) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 36732) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 35233) // prior = 0.0321 ; delta = 0.5179
+0.5500	ZIPCode( 35502) // prior = 0.0161 ; delta = 0.5339
+0.5500	ZIPCode( 36801) // prior = 0.0161 ; delta = 0.5339
+0.5400	ZIPCode( 35768) // prior = 0.0161 ; delta = 0.5239
+0.5400	ZIPCode( 36106) // prior = 0.0161 ; delta = 0.5239
+0.5400	ZIPCode( 36340) // prior = 0.0161 ; delta = 0.5239
+0.5400	ZIPCode( 36092) // prior = 0.0161 ; delta = 0.5239
+0.5400	ZIPCode( 36201) // prior = 0.0161 ; delta = 0.5239
+0.5300	ZIPCode( 35801) // prior = 0.0161 ; delta = 0.5139
+0.5300	ZIPCode( 35631) // prior = 0.0161 ; delta = 0.5139
+0.5300	ZIPCode( 35594) // prior = 0.0161 ; delta = 0.5139
+0.5200	ZIPCode( 35235) // prior = 0.0161 ; delta = 0.5039
+0.5200	ZIPCode( 36116) // prior = 0.0161 ; delta = 0.5039
+0.5200	ZIPCode( 36278) // prior = 0.0161 ; delta = 0.5039
+0.5100	ZIPCode( 35058) // prior = 0.0161 ; delta = 0.4939
+0.5100	ZIPCode( 36744) // prior = 0.0161 ; delta = 0.4939
+0.5100	ZIPCode( 36033) // prior = 0.0161 ; delta = 0.4939
+0.5000	ZIPCode( 36652) // prior = 0.0161 ; delta = 0.4839
+0.5000	ZIPCode( 36027) // prior = 0.0161 ; delta = 0.4839
+0.5000	ZIPCode( 35243) // prior = 0.0161 ; delta = 0.4839
+0.5000	ZIPCode( 36451) // prior = 0.0161 ; delta = 0.4839
+0.4900	ZIPCode( 36726) // prior = 0.0161 ; delta = 0.4739
+0.4900	ZIPCode( 35462) // prior = 0.0161 ; delta = 0.4739
+0.4700	ZIPCode( 35010) // prior = 0.0161 ; delta = 0.4539
+0.4700	ZIPCode( 36617) // prior = 0.0161 ; delta = 0.4539
+0.4700	ZIPCode( 35555) // prior = 0.0161 ; delta = 0.4539
+0.4400	ZIPCode( 35611) // prior = 0.0161 ; delta = 0.4239
+0.4400	ZIPCode( 36535) // prior = 0.0161 ; delta = 0.4239
+0.4300	ZIPCode( 35601) // prior = 0.0161 ; delta = 0.4139

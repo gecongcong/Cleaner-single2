@@ -1,0 +1,51 @@
+package main;
+
+import data.Rule;
+
+import java.io.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+/**
+ * Created by gcc on 17-9-25.
+ */
+public class PickData {
+
+    public static void generateData(String sourceFile, String writeFile, int sampleSize){
+        FileReader reader;
+        ArrayList<String> tupleList = new ArrayList<String>();
+        try {
+            File writefile = new File(writeFile);
+            if (!writefile.exists()) {
+                writefile.createNewFile();
+            }
+            FileWriter fw = new FileWriter(writefile);
+            BufferedWriter bw = new BufferedWriter(fw);
+            reader = new FileReader(sourceFile);
+            BufferedReader br = new BufferedReader(reader);
+            String line = null;
+            String header = br.readLine();
+            bw.write(header+"\n");
+            while((line = br.readLine()) != null && line.length()!=0) {
+                tupleList.add(line);
+            }
+
+            for(int i=0;i<sampleSize;i++){
+                int index = (int)(Math.random()*tupleList.size());
+                bw.write(tupleList.get(index)+"\n");
+            }
+
+            br.close();
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws Exception{
+        String sourceFile = "/home/gcc/experiment/dataSet/HAI/HAI-9q-10%-error.csv";
+        String writeFile = "/home/gcc/experiment/dataSet/HAI/HAI-1q-10%-error.txt";
+        int sampleSize = 1000;
+        generateData(sourceFile,writeFile,sampleSize);
+    }
+}
