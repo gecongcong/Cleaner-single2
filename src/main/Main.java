@@ -3,15 +3,12 @@ package main;
 import java.io.*;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import data.Domain;
+import data.GroundRule;
 import data.Rule;
 import data.Tuple;
 import tuffy.main.MLNmain;
@@ -26,9 +23,73 @@ public class Main {
     static String cleanedFileURL = null;
     static ArrayList<Integer> ignoredIDs = null;
     public static String rulesURL = baseURL + "/dataSet/HAI/rules.txt";
-    public static String dataURL = baseURL + "/dataSet/HAI/HAI-1q-10%-error.txt";
-    public static String groundURL = baseURL + "/dataSet/HAI/HAI-1q.csv";
+    public static String dataURL = baseURL + "/dataSet/HAI/HAI-1q-10%-error.csv";
+    //public static String dataURL = "/home/gcc/experiment/RDBSCleaner_cleaned.txt";
+    //public static String groundURL = baseURL + "/dataSet/HAI/HAI-1q.csv";
 
+
+    public static void updateprogMLN(String oldMLNfile, String dataFile){
+
+        ArrayList<String> rules = new ArrayList<String>();
+        ArrayList<String> newerRules = new ArrayList<String>();
+        try {
+            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules-test.txt");
+            BufferedReader br = new BufferedReader(reader);
+            String line = null;
+            while((line = br.readLine()) != null && line.length()!=0) {
+                rules.add(line);
+            }
+            br.close();
+            HashMap<String, GroundRule> new_results = Rule.createMLN(dataFile, rules);
+            HashMap<String,String> old_results = readMLNFile(oldMLNfile);
+
+            Iterator<Map.Entry<String,GroundRule>> iter = new_results.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<String,GroundRule> entry = (Map.Entry<String,GroundRule>) iter.next();
+                String new_tuple = entry.getKey();
+                if(new_tuple.equals("City(\"FORTPAYNE\") v PhoneNumber(\"2568453150\") v !ProviderID(\"10012\")")){
+                    System.out.println("111111");
+                }
+                if(null == old_results.get(new_tuple)){
+                    //old_results.put(new_tuple, entry.getValue().weight);
+                    newerRules.add(entry.getValue().weight+",\t"+new_tuple);
+                }
+            }
+            File writefile = new File(oldMLNfile);
+            FileWriter fw = new FileWriter(writefile, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            for(int i=0;i<newerRules.size();i++){
+                bw.write(newerRules.get(i));
+                bw.newLine();
+            }
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static HashMap<String,String> readMLNFile(String mlnFile){
+        HashMap<String,String> result = new HashMap<String,String>();
+        try {
+            FileReader reader = new FileReader(mlnFile);
+            BufferedReader br = new BufferedReader(reader);
+            String line = null;
+            //escape predicate
+//            while((line = br.readLine()) != null) {
+//                if(line.length()==0)break;
+//            }
+            while((line = br.readLine()) != null && line.length()==0) {
+                String rule_noWeight = line.substring(line.indexOf(",")+1).trim();
+                String weight = line.substring(0,line.indexOf(","));
+                result.put(rule_noWeight,weight);
+            }
+            br.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
 
     public static void main(String[] args) throws SQLException, IOException {
 
@@ -82,17 +143,22 @@ public class Main {
         list.add(maxIter_args);
         String maxIter = "400";
         list.add(maxIter);
+        String mcsatSamples_args = "-mcsatSamples";
+        //list.add(mcsatSamples_args);
+        String mcsatSamples = "100";
+        //list.add(mcsatSamples);
         String[] learnwt = list.toArray(new String[list.size()]);
         List<HashMap<String,Double>> attributesPROBList =new ArrayList<HashMap<String, Double>>();
 
 
         int batch = 1; // 可调节
-        int sampleSize = 5000; //课调节
+        int sampleSize = 1000; //课调节
 
         for (int i=0;i<batch;i++) {
-            rule.resample(newTupleList,sampleSize);
-            rule.formatEvidence(evidence_outFile);
-            MLNmain.main(learnwt);    //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
+            //rule.resample(newTupleList,sampleSize);
+            //rule.formatEvidence(evidence_outFile);
+            //MLNmain.main(learnwt);    //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
+            updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
             //读取参数学习得到的团权重，存入HashMap
             HashMap<String, Double> attributesPROB = Rule.loadRulesFromFile("/home/gcc/experiment/dataSet/HAI/out.txt");
             attributesPROBList.add(attributesPROB);

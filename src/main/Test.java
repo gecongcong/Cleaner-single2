@@ -25,11 +25,11 @@ public class Test {
             while((line = br.readLine()) != null && line.length()!=0) {
                 rules.add(line);
             }
-            Rule.createMLN("/home/gcc/experiment/dataSet/HAI/HAI-1q-10%-error.txt",rules);
+            Rule.createMLN("/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt",rules);
             //Rule.createMLN("/home/gcc/experiment/dataSet/synthetic-car/fulldb-1q.txt",rules);
-            //Rule.loadRulesFromFile("/home/gcc/experiment/dataSet/HAI/out.txt");
         }catch (Exception e){
             e.printStackTrace();
         }
+        Main.updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
     }
 }

@@ -43,7 +43,7 @@ public class PickData {
     }
 
     public static void main(String[] args) throws Exception{
-        String sourceFile = "/home/gcc/experiment/dataSet/HAI/HAI-9q-10%-error.csv";
+        String sourceFile = "/home/gcc/experiment/dataSet/HAI/HAI-3q-10%-error.csv";
         String writeFile = "/home/gcc/experiment/dataSet/HAI/HAI-1q-10%-error.txt";
         int sampleSize = 1000;
         generateData(sourceFile,writeFile,sampleSize);

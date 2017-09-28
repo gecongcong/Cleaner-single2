@@ -184,9 +184,9 @@ public abstract class Learner extends Infer {
 		this.loadingTrainingData(_mcsat);
 		
 		// all positive violation
-		for(String s : currentWeight.keySet()){
-			currentWeight.put(s, 1.0);
-		}
+//		for(String s : currentWeight.keySet()){
+//			currentWeight.put(s, 1.0);
+//		}
 		_mcsat.updateClauseWeights(currentWeight);
 		_mcsat.updateClauseVoiTallies();
 		positiveWeightViolation = (HashMap<String, Long>)
@@ -195,9 +195,9 @@ public abstract class Learner extends Infer {
 			(_mcsat.clauseSatTallies.clone());	
 		
 		// all negative violation
-		for(String s : currentWeight.keySet()){
-			currentWeight.put(s, -1.0);
-		}
+//		for(String s : currentWeight.keySet()){
+//			currentWeight.put(s, -1.0);
+//		}
 		_mcsat.updateClauseWeights(currentWeight);
 		_mcsat.clauseVioTallies.clear();
 		_mcsat.clauseSatTallies.clear();

@@ -135,8 +135,9 @@ public class Rule {
         return resultIDs;
     }
 
-    public static void createMLN(String filename,ArrayList<String> rules){
-        HashMap<String, Integer> map = new HashMap<String, Integer>();
+    public static HashMap<String,GroundRule> createMLN(String filename,ArrayList<String> rules){
+        //HashMap<String,GroundRule> results = new HashMap<String,GroundRule>();
+        HashMap<String, GroundRule> map = new HashMap<String, GroundRule>();
         try{
             File file = new File(filename);//¶ÁÎÄ¼þ
             File writefile = new File("/home/gcc/experiment/dataSet/HAI/rules-new.txt");
@@ -166,22 +167,39 @@ public class Rule {
                                 //rules.set(k,currentRule);
                             }
                         }
-                        map.put(currentRule,1);
+
+                        //String weight = currentRule.substring(0,currentRule.indexOf(","));
+                        //String rule_noWeight = currentRule.substring(currentRule.indexOf(",")+1).trim();
+
+                        if(map.get(currentRule)==null){
+
+                            GroundRule gr = new GroundRule("",1);
+                            map.put(currentRule,gr);
+                        }else{
+                            map.get(currentRule).number += 1;
+                            map.put(currentRule,map.get(currentRule));
+                        }
                         System.out.println(currentRule);
                     }
                 }
             }
-            Iterator<Map.Entry<String,Integer>> iter = map.entrySet().iterator();
+            Iterator<Map.Entry<String,GroundRule>> iter = map.entrySet().iterator();
             while (iter.hasNext()) {
-                Map.Entry<String,Integer> entry = (Map.Entry<String,Integer>) iter.next();
+                Map.Entry<String,GroundRule> entry = (Map.Entry<String,GroundRule>) iter.next();
                 String key = entry.getKey();
-                bw.write("1\t"+key+"\n");
+                GroundRule value = entry.getValue();
+                double weight = (double)value.number*10/map.size();
+                map.get(key).weight = String.format("%.2f", weight);
+                String result = map.get(key).weight+"\t"+key+"\n";
+                bw.write(result);
+                //results.put(result, 1);
             }
             br.close();
             bw.close();
         }catch(IOException e){
             e.printStackTrace();
         }
+        return map;
     }
 
     public void getHeader(String DBurl, String splitString) {
@@ -564,7 +582,7 @@ public class Rule {
             reader = new FileReader(fileURL);
             BufferedReader br = new BufferedReader(reader);
             String str = null;
-            while ((str = br.readLine()) != null) {
+            while ((str = br.readLine()) != null ) {
                 MLNClause mlnClause = new MLNClause();
                 String weight = str.substring(0,str.indexOf(","));
                 mlnClause.weight = Double.parseDouble(weight);

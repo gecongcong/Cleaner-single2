@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import jdk.nashorn.internal.ir.annotations.Ignore;
+import spellchecker.SpellChecker;
 
 public class Domain {
 
@@ -325,45 +326,121 @@ public class Domain {
 			if(groups.size()>0){
 				Domain_to_Groups.add(groups);
 			}
-
-
 		}
 
-		int d_index=0;
-		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
-			System.out.println("\n*******Domain "+(++d_index)+"*******");
-			printGroup(d);
-		}
-
+//		int d_index=0;
+//		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
+//			System.out.println("\n*******Domain "+(++d_index)+"*******");
+//			printGroup(d);
+//		}
 
 	}
 
+	class Tuple2{
+		String content;
+		int tupleID;
 
+		Tuple2(int tupleID, String content){
+			this.content = content;
+			this.tupleID = tupleID;
+		};
+	}
 
+	public int replaceNCost(String B, ArrayList<Tuple2> list){ //replace A in list -> B cost N
+		//that is to compute how many tuples differ from B
+		int N = 0;
+		for(int i=0;i<list.size();i++){
+			String A = list.get(i).content;
+			if(!B.equals(A)){
+				N++;
+			}else continue;
+		}
+		return N;
+	}
+
+	public HashMap<String,Candidate> spellCheck(HashMap<Integer, Tuple> group){
+		System.out.println("--------spellCheck-------");
+
+//		class Tuple2{
+//			String content;
+//			int tupleID;
+//
+//			Tuple2(int tupleID, String content){
+//				this.content = content;
+//				this.tupleID = tupleID;
+//			};
+//		}
+
+		HashMap<String,Candidate> cMap = new HashMap<String,Candidate>();
+		ArrayList<Tuple2> tupleList = new ArrayList<Tuple2>();
+		Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
+
+		//put tuples into ArrayList
+		while (iter.hasNext()) {
+			Entry<Integer, Tuple> current = iter.next();
+			Tuple tuple = current.getValue();
+			int tupleID = current.getKey();
+			int length = tuple.getContext().length;
+			String[] content = new String[length];
+			System.arraycopy(tuple.getContext(), 0, content, 0, length);
+			Arrays.sort(content);
+			String t = Arrays.toString(content);
+//			String t = Arrays.toString(content).replaceAll("\\[","").replaceAll("]","");
+			tupleList.add(new Tuple2(tupleID, t));
+		}
+
+		for(int i=0;i<tupleList.size();i++){
+			String tuple = tupleList.get(i).content;
+			int dis = 1000;
+			String candidate = "";
+			int tupleID = tupleList.get(i).tupleID;
+			//找到该Tuple的最小distance
+			for(int j=0;j<tupleList.size();j++){
+				String tmp_candidate = tupleList.get(j).content;
+				if(tuple.equals(tmp_candidate)) continue;
+				int distance = SpellChecker.getDistance(tuple, tmp_candidate);
+				int N = replaceNCost(tmp_candidate,tupleList);
+				int tmp_cost = distance * N;
+				if(tmp_cost<dis){
+					dis = tmp_cost;
+					candidate = tmp_candidate;
+					//tupleID = tupleList.get(j).tupleID;
+				}
+			}
+//			if(tupleID == -1){
+//				tupleID = tupleList.get(0).tupleID;
+//				candidate = tupleList.get(0).content;
+//				cost = 0;
+//			}
+			cMap.put(tuple, new Candidate(tupleID, candidate, dis));
+			System.out.println("tupleID = "+tupleID+"; "+tuple+" -> "+candidate);
+		}
+		return cMap;
+	}
 
 
 	/**
 	 * 根据MLN的概率修正错误数据
 	 * */
-
-
 	public void correctByMLN(List<List<HashMap<Integer, Tuple>>> Domain_to_Groups, List<HashMap<String, Double>> attributesPROBList, String[] header, List<HashMap<Integer, Tuple>> domains){
 		int DGindex = 0;
 
 		for(List<HashMap<Integer, Tuple>> groups: Domain_to_Groups) {
-			System.out.println("---------------"+(DGindex+1)+"--------------------");
+//			System.out.println("---------------"+(DGindex+1)+"--------------------");
 
 			for (int i = 0; i < groups.size(); i++) {
 				HashMap<Integer, Tuple> group = groups.get(i);
-
 				HashMap<Integer,Integer> weight=new HashMap<Integer,Integer>();
+
+				HashMap<String,Candidate> cMap = spellCheck(group);
 
 				for (int t = 0; t < attributesPROBList.size(); t++) {
 					HashMap<String, Double> attributesPROB = attributesPROBList.get(t);
 
 					Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
-					double pre_prob = 0.0;
+					double pre_cost = 0.0f;
 					int tupleID = 0;
+
 					//遍历group
 					while (iter.hasNext()) {
 						Entry<Integer, Tuple> current = iter.next();
@@ -375,17 +452,25 @@ public class Domain {
 						Arrays.sort(tmp_context);
 						String values = Arrays.toString(tmp_context);
 						//System.out.println(resultValues);
-						if(values.indexOf("10085")!=-1){
-							System.out.println("在这停顿！！！");
-						}
+//						if(values.indexOf("10085")!=-1){
+//							System.out.println("在这停顿！！！");
+//						}
 
 						Double prob = attributesPROB.get(values);
+						Candidate c = cMap.get(values);
+						String candidate = c.candidate;
 						if (prob == null) {
 							prob = 0.0;	//说明这个团只在数据集里出现过一次，姑且认为该团不具代表性，概率置0
 						}
-						if (pre_prob < prob) {
-							pre_prob = prob;
-							tupleID = current.getKey();
+						double cost = 0.0f;
+						if (c.cost == 0) {
+							cost = 1000;
+						}else
+							cost = prob / c.cost;
+						if (cost > pre_cost) {
+							pre_cost = cost;
+							//tupleID = current.getKey();
+							tupleID = c.tupleID;
 						}
 					}
 					if(weight.get(tupleID)==null)
