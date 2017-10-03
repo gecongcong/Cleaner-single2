@@ -22,10 +22,10 @@ public class Main {
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = null;
     static ArrayList<Integer> ignoredIDs = null;
-    public static String rulesURL = baseURL + "/dataSet/HAI/rules.txt";
-    public static String dataURL = baseURL + "/dataSet/HAI/HAI-1q-10%-error.csv";
+    public static String rulesURL = baseURL + "/dataSet/synthetic-car/rules.txt";
+    public static String dataURL = baseURL + "/dataSet/synthetic-car/fulldb-1q.txt";
     //public static String dataURL = "/home/gcc/experiment/RDBSCleaner_cleaned.txt";
-    //public static String groundURL = baseURL + "/dataSet/HAI/HAI-1q.csv";
+    //public static String groundURL = baseURL + "/dataSet/synthetic-car/synthetic-car-1q.csv";
 
 
     public static void updateprogMLN(String oldMLNfile, String dataFile){
@@ -33,23 +33,21 @@ public class Main {
         ArrayList<String> rules = new ArrayList<String>();
         ArrayList<String> newerRules = new ArrayList<String>();
         try {
-            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules-test.txt");
+            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/synthetic-car/rules.txt");
             BufferedReader br = new BufferedReader(reader);
             String line = null;
             while((line = br.readLine()) != null && line.length()!=0) {
                 rules.add(line);
             }
             br.close();
-            HashMap<String, GroundRule> new_results = Rule.createMLN(dataFile, rules);
+            HashMap<String, GroundRule> new_results = Rule.createMLN(dataFile, rules);//读取rules模板，创建ground rules
             HashMap<String,String> old_results = readMLNFile(oldMLNfile);
 
             Iterator<Map.Entry<String,GroundRule>> iter = new_results.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<String,GroundRule> entry = (Map.Entry<String,GroundRule>) iter.next();
                 String new_tuple = entry.getKey();
-                if(new_tuple.equals("City(\"FORTPAYNE\") v PhoneNumber(\"2568453150\") v !ProviderID(\"10012\")")){
-                    System.out.println("111111");
-                }
+
                 if(null == old_results.get(new_tuple)){
                     //old_results.put(new_tuple, entry.getValue().weight);
                     newerRules.add(entry.getValue().weight+",\t"+new_tuple);
@@ -79,7 +77,7 @@ public class Main {
 //            while((line = br.readLine()) != null) {
 //                if(line.length()==0)break;
 //            }
-            while((line = br.readLine()) != null && line.length()==0) {
+            while((line = br.readLine()) != null && line.length()!=0) {
                 String rule_noWeight = line.substring(line.indexOf(",")+1).trim();
                 String weight = line.substring(0,line.indexOf(","));
                 result.put(rule_noWeight,weight);
@@ -96,7 +94,7 @@ public class Main {
         double startTime = System.currentTimeMillis();    //获取开始时间
         Rule rule = new Rule();
         Domain domain = new Domain();
-        String evidence_outFile = baseURL + "/dataSet/HAI/evidence.db";
+        String evidence_outFile = baseURL + "/dataSet/synthetic-car/evidence.db";
 
 
         //System.out.println("rootURL=" + rootURL);
@@ -112,7 +110,7 @@ public class Main {
         domain.header = rule.header;
         header = rule.header;
 
-        domain.createMLN(rule.header, rulesURL);
+        //domain.createMLN(rule.header, rulesURL);
         //调用MLN相关的命令参数
         ArrayList<String> list = new ArrayList<String>();
         String marginal_args = "-marginal";
@@ -123,19 +121,19 @@ public class Main {
         //list.add(nopart_args);
         String mln_args = "-i";
         list.add(mln_args);
-        String mlnFileURL = baseURL + "/dataSet/HAI/prog-new.mln";//prog.mln
+        String mlnFileURL = baseURL + "/dataSet/synthetic-car/prog-new.mln";//prog.mln
         list.add(mlnFileURL);
         String evidence_args = "-e";
         list.add(evidence_args);
-        String evidenceFileURL = baseURL + "/dataSet/HAI/evidence.db"; //samples/smoke/
+        String evidenceFileURL = baseURL + "/dataSet/synthetic-car/evidence.db"; //samples/smoke/
         list.add(evidenceFileURL);
         String queryFile_args = "-queryFile";
         list.add(queryFile_args);
-        String queryFileURL = baseURL + "/dataSet/HAI/query.db";
+        String queryFileURL = baseURL + "/dataSet/synthetic-car/query.db";
         list.add(queryFileURL);
         String outFile_args = "-r";
         list.add(outFile_args);
-        String weightFileURL = baseURL + "/dataSet/HAI/out.txt";
+        String weightFileURL = baseURL + "/dataSet/synthetic-car/out.txt";
         list.add(weightFileURL);
         String noDropDB = "-keepData";
         //list.add(noDropDB);
@@ -158,9 +156,9 @@ public class Main {
             //rule.resample(newTupleList,sampleSize);
             //rule.formatEvidence(evidence_outFile);
             //MLNmain.main(learnwt);    //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
-            updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
+            //updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , dataURL);
             //读取参数学习得到的团权重，存入HashMap
-            HashMap<String, Double> attributesPROB = Rule.loadRulesFromFile("/home/gcc/experiment/dataSet/HAI/out.txt");
+            HashMap<String, Double> attributesPROB = Rule.loadRulesFromFile("/home/gcc/experiment/dataSet/synthetic-car/out.txt");
             attributesPROBList.add(attributesPROB);
         }
 
@@ -173,7 +171,7 @@ public class Main {
         //根据MLN的概率修正错误数据
         domain.correctByMLN(domain.Domain_to_Groups, attributesPROBList, domain.header, domain.domains);
         //打印修正后的Domain
-         domain.printDomainContent(domain.domains);
+        //domain.printDomainContent(domain.domains);
 
         System.out.println(">>> Find Duplicate Values...");
         List<List<Integer>> keysList = domain.combineDomain(domain.Domain_to_Groups);    //返回所有重复数组的tupleID,并记录重复元组
@@ -202,7 +200,7 @@ public class Main {
         double totalTime = (endTime - startTime) / 1000;
         DecimalFormat df = new DecimalFormat("#.00");
         System.out.println("程序运行时间： " + df.format(totalTime) + "s");
-        //     String cleanFileURL ="C:\\Users\\zmx\\Desktop\\Cleaner-single\\HAI-1q.csv";
+        //     String cleanFileURL ="C:\\Users\\zmx\\Desktop\\Cleaner-single\\synthetic-car-1q.csv";
 
     }
 

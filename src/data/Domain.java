@@ -15,7 +15,7 @@ import spellchecker.SpellChecker;
 
 public class Domain {
 
-	public static String baseURL = "E:\\experiment\\";
+	//public static String baseURL = "E:\\experiment\\";
 
 
 	public HashMap<Integer,String[]> dataSet = new HashMap<Integer,String[]>();
@@ -34,46 +34,46 @@ public class Domain {
 	public Domain(){}
 
 	// 这个函数的作用是创造 mln 文件。
-	public void createMLN(String[] header, String rulesURL){
-		File file = new File(rulesURL);
-		BufferedReader reader = null;
-		ArrayList<String> lines = new ArrayList<String>();
-		try {
-			reader = new BufferedReader(new FileReader(file));
-			String line = null;
-			while ((line = reader.readLine()) != null && line.length()!=0) {
-				lines.add(line);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (IOException e1) {
-				}
-			}
-		}
-
-		String mlnURL = baseURL+"dataSet\\HAI\\prog.mln";//prog.mln;
-		String content = null;
-		try {
-			//打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
-			FileWriter writer = new FileWriter(mlnURL, false);
-			for(int i=0;i<header.length;i++){
-				content = header[i]+"(value"+header[i]+")\n";
-				writer.write(content);
-			}
-			writer.write("\n");
-			for(int i=0;i<lines.size();i++){
-				writer.write("1\t"+lines.get(i)+"\n");
-			}
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void createMLN(String[] header, String rulesURL){
+//		File file = new File(rulesURL);
+//		BufferedReader reader = null;
+//		ArrayList<String> lines = new ArrayList<String>();
+//		try {
+//			reader = new BufferedReader(new FileReader(file));
+//			String line = null;
+//			while ((line = reader.readLine()) != null && line.length()!=0) {
+//				lines.add(line);
+//			}
+//			reader.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		} finally {
+//			if (reader != null) {
+//				try {
+//					reader.close();
+//				} catch (IOException e1) {
+//				}
+//			}
+//		}
+//
+//		String mlnURL = baseURL+"dataSet\\HAI\\prog.mln";//prog.mln;
+//		String content = null;
+//		try {
+//			//打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+//			FileWriter writer = new FileWriter(mlnURL, false);
+//			for(int i=0;i<header.length;i++){
+//				content = header[i]+"(value"+header[i]+")\n";
+//				writer.write(content);
+//			}
+//			writer.write("\n");
+//			for(int i=0;i<lines.size();i++){
+//				writer.write("1\t"+lines.get(i)+"\n");
+//			}
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 
 
@@ -328,11 +328,11 @@ public class Domain {
 			}
 		}
 
-//		int d_index=0;
-//		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
-//			System.out.println("\n*******Domain "+(++d_index)+"*******");
-//			printGroup(d);
-//		}
+		int d_index=0;
+		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
+			System.out.println("\n*******Domain "+(++d_index)+"*******");
+			printGroup(d);
+		}
 
 	}
 
@@ -359,17 +359,7 @@ public class Domain {
 	}
 
 	public HashMap<String,Candidate> spellCheck(HashMap<Integer, Tuple> group){
-		System.out.println("--------spellCheck-------");
-
-//		class Tuple2{
-//			String content;
-//			int tupleID;
-//
-//			Tuple2(int tupleID, String content){
-//				this.content = content;
-//				this.tupleID = tupleID;
-//			};
-//		}
+		//System.out.println("--------spellCheck-------");
 
 		HashMap<String,Candidate> cMap = new HashMap<String,Candidate>();
 		ArrayList<Tuple2> tupleList = new ArrayList<Tuple2>();
@@ -413,7 +403,7 @@ public class Domain {
 //				cost = 0;
 //			}
 			cMap.put(tuple, new Candidate(tupleID, candidate, dis));
-			System.out.println("tupleID = "+tupleID+"; "+tuple+" -> "+candidate);
+			//System.out.println("tupleID = "+tupleID+"; "+tuple+" -> "+candidate);
 		}
 		return cMap;
 	}
@@ -861,7 +851,7 @@ public class Domain {
 		int count = 0;
 		int i = 0;
 		int ti = 0, cti = 0;
-		for(; conflictIDs[i]!=-1; i++){
+		for(; i<conflictIDs.length && conflictIDs[i]!=-1; i++){
 			while(ti<t.AttributeIndex.length){
 				if(t.AttributeIndex[ti]==conflictIDs[i]){
 					break;

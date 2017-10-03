@@ -17,7 +17,7 @@ public class Test {
 
         FileReader reader;
         try {
-            reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules-test.txt");
+            reader = new FileReader("/home/gcc/experiment/dataSet/synthetic-car/rules.txt");
             //reader = new FileReader("/home/gcc/experiment/dataSet/synthetic-car/rules.txt");
 
             BufferedReader br = new BufferedReader(reader);
@@ -25,11 +25,11 @@ public class Test {
             while((line = br.readLine()) != null && line.length()!=0) {
                 rules.add(line);
             }
-            Rule.createMLN("/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt",rules);
+            Rule.createMLN("/home/gcc/experiment/dataSet/synthetic-car/ground_truth-1q.txt",rules);
             //Rule.createMLN("/home/gcc/experiment/dataSet/synthetic-car/fulldb-1q.txt",rules);
         }catch (Exception e){
             e.printStackTrace();
         }
-        Main.updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
+        //Main.updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
     }
 }

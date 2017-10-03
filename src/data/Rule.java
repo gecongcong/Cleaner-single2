@@ -140,7 +140,7 @@ public class Rule {
         HashMap<String, GroundRule> map = new HashMap<String, GroundRule>();
         try{
             File file = new File(filename);//¶ÁÎÄ¼þ
-            File writefile = new File("/home/gcc/experiment/dataSet/HAI/rules-new.txt");
+            File writefile = new File("/home/gcc/experiment/dataSet/synthetic-car/rules-new.txt");
             if (!writefile.exists()) {
                 writefile.createNewFile();
             }
@@ -188,7 +188,8 @@ public class Rule {
                 Map.Entry<String,GroundRule> entry = (Map.Entry<String,GroundRule>) iter.next();
                 String key = entry.getKey();
                 GroundRule value = entry.getValue();
-                double weight = (double)value.number*10/map.size();
+                double weight = (double)value.number*100/map.size();
+                if(weight>=5) weight = 5;
                 map.get(key).weight = String.format("%.2f", weight);
                 String result = map.get(key).weight+"\t"+key+"\n";
                 bw.write(result);
