@@ -128,7 +128,7 @@ public class CommandOptions {
     public boolean avoidBreakingHardClauses;
     
     @Option(name="-mcsatSamples", usage="Number of samples used by MC-SAT. Default=100.")
-    public int mcsatSamples = 100;
+    public int mcsatSamples = 1;
 
     @Option(name="-mcsatDumpInt", usage="Number of samples between dumps from MC-SAT. Default=Never.")
     public int mcsatDumpInt = 0;

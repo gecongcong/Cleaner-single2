@@ -30,5 +30,4 @@ public class ProbAttribute {
 		this.name = name;
 	}
 	
-	
 }

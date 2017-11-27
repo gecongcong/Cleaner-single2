@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import javafx.scene.input.DataFormat;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import spellchecker.SpellChecker;
 
@@ -29,7 +30,7 @@ public class Domain {
 	public HashMap<Integer,Conflicts> conflicts = new HashMap<Integer,Conflicts>();	//记录冲突的元组，并按Domain分类 <DomainID, ConflictTuple>
 
 	//属性列，如果数据集中没有给出，则构造一个属性列：Attr1,Attr2,Attr3,...,AttrN
-	public String[] header = null;
+	public static String[] header = null;
 
 	public Domain(){}
 
@@ -88,7 +89,7 @@ public class Domain {
 	 * */
 
 
-	public void init(String fileURL,String splitString,boolean ifHeader, List<Tuple> rules){
+	public HashMap<Integer,String[]> init(String fileURL,String splitString,boolean ifHeader, List<Tuple> rules){
 		// read file content from file 读取文件内容
 		FileReader reader;
 		int rules_size = rules.size();
@@ -100,15 +101,16 @@ public class Domain {
 			reader = new FileReader(fileURL);
 			BufferedReader br = new BufferedReader(reader);
 			String str = null;
-			int key = 0; //tuple index
+			int key; //tuple index
 
 			if(ifHeader && (str = br.readLine()) != null){  //The data has header
 				//   	header=str.split(splitString);
 				while((str = br.readLine()) != null) {
 				//	System.out.println(str);
 					//dataSet.add(str.split(splitString));
-
-					String[] tuple = str.split(splitString);
+					str = str.replaceAll(" ","");
+					key = Integer.parseInt(str.substring(0, str.indexOf(",")));
+					String[] tuple = str.substring(str.indexOf(",")+1).split(",");
 					dataSet.put(key, tuple);
 
 					//为每一条rule划分数据集区域Di
@@ -155,7 +157,7 @@ public class Domain {
 						//区域Di划分完毕,放入hashMap
 						domains.get(i%rules_size).put(key,t); //<K,V>  K = tuple ID , from 0 to n
 					}
-					key++;
+					//key++;
 
 				}
 			}else{
@@ -163,8 +165,8 @@ public class Domain {
 //	        	boolean flag = false;
 				while((str = br.readLine()) != null) {
 					//dataSet.add(str.split(splitString));
-					String[] tuple = str.split(splitString);
-
+					key = Integer.parseInt(str.substring(0, str.indexOf(",")));
+					String[] tuple = str.substring(str.indexOf(",")+1).split(",");
 					dataSet.put(key, tuple);
 
 					for(int i=0;i<rules_size;i++){	//为每一条rule划分数据集区域Di
@@ -222,6 +224,7 @@ public class Domain {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return dataSet;
 	}
 
 	public static boolean ifContains(int[] IDs, int[] bigIDs){
@@ -276,8 +279,6 @@ public class Domain {
 
 	/**
 	 * 二次划分，根据reason predicates 建立索引
-	 * @param List<HashMap<Integer,List>> domains
-	 * @param List<Tuple> rules
 	 * */
 
 
@@ -291,48 +292,72 @@ public class Domain {
 
 			domain = domains.get(i); // 一个
 			int domain_size = domain.size(); //元组对数
-			boolean[] flags = new boolean[domain_size];
+			HashSet<Integer> flags = new HashSet<>();
 
 			List<HashMap<Integer, Tuple>> groups = new ArrayList<HashMap<Integer, Tuple>>();
 
-			for(int k=0;k<domain_size;k++){ //对区域中不同的元组根据 Key 重新 group
-				Tuple tuple1 = domain.get(k); //一个 tuple
+			Iterator<Entry<Integer, Tuple>> iter = domain.entrySet().iterator();
+			while (iter.hasNext()){
+				Entry<Integer, Tuple> entry = iter.next();
+				int k = entry.getKey();
+				Tuple tuple1 = entry.getValue(); //一个 tuple
 				HashMap<Integer, Tuple> group = new HashMap<Integer, Tuple>();
 				group.put(k, tuple1);	//add Ti to group(i), now G(i)={Ti}
 				String[] reason1 = tuple1.reason;
 				//int index=0;
 
-				if(!flags[k]){
-					for(int m=k+1;m<domain_size;m++){
-						if(flags[m])continue;
-						Tuple tuple2 = domain.get(m);
-						String[] reason2 = tuple2.reason;
+				if(!flags.contains(k)){
+					Iterator<Entry<Integer, Tuple>> iter2 = domain.entrySet().iterator();
+					boolean flag = false;
+					while(iter2.hasNext()){
+						Entry<Integer, Tuple> entry2 = iter2.next();
+						if (entry.equals(entry2)) flag = true;
+						else if (flag){
+							int m = entry2.getKey();
+							if(flags.contains(m))continue;
+							Tuple tuple2 = entry2.getValue();
+							String[] reason2 = tuple2.reason;
 
-						if(Arrays.equals(reason1,reason2)){
-							group.put(m, tuple2);
-							flags[m] = true;
+							if(Arrays.equals(reason1,reason2)){
+								group.put(m, tuple2);
+								flags.add(m);
+							}
+
+							//index++;
 						}
-
-						//index++;
 					}
+//					for(int m=k+1;m<domain_size;m++){
+//						if(flags[m])continue;
+//						Tuple tuple2 = domain.get(m);
+//						String[] reason2 = tuple2.reason;
+//
+//						if(Arrays.equals(reason1,reason2)){
+//							group.put(m, tuple2);
+//							flags[m] = true;
+//						}
+//						//index++;
+//					}
 
 					if(group.size()>1){
 						groups.add(group);
 					}
 				}
-
 			}
+//			for(int k=0;k<domain_size;k++){ //对区域中不同的元组根据 Key 重新 group
+//
+//
+//			}
 
 			if(groups.size()>0){
 				Domain_to_Groups.add(groups);
 			}
 		}
 
-		int d_index=0;
-		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
-			System.out.println("\n*******Domain "+(++d_index)+"*******");
-			printGroup(d);
-		}
+//		int d_index=0;
+//		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
+//			System.out.println("\n*******Domain "+(++d_index)+"*******");
+//			printGroup(d);
+//		}
 
 	}
 
@@ -380,13 +405,16 @@ public class Domain {
 		}
 
 		for(int i=0;i<tupleList.size();i++){
-			String tuple = tupleList.get(i).content;
+			Tuple2 t = tupleList.get(i);
+			String tuple = t.content;
 			int dis = 1000;
 			String candidate = "";
-			int tupleID = tupleList.get(i).tupleID;
+			int tupleID = t.tupleID;
 			//找到该Tuple的最小distance
 			for(int j=0;j<tupleList.size();j++){
-				String tmp_candidate = tupleList.get(j).content;
+				Tuple2 tuple2 = tupleList.get(j);
+				String tmp_candidate = tuple2.content;
+				//tupleID = tuple2.tupleID;
 				if(tuple.equals(tmp_candidate)) continue;
 				int distance = SpellChecker.getDistance(tuple, tmp_candidate);
 				int N = replaceNCost(tmp_candidate,tupleList);
@@ -441,8 +469,8 @@ public class Domain {
 						System.arraycopy(tuple.getContext(), 0, tmp_context, 0, length);
 						Arrays.sort(tmp_context);
 						String values = Arrays.toString(tmp_context);
-						//System.out.println(resultValues);
-//						if(values.indexOf("10085")!=-1){
+
+//						if(values.indexOf("zdx")!=-1){
 //							System.out.println("在这停顿！！！");
 //						}
 
@@ -456,7 +484,7 @@ public class Domain {
 						if (c.cost == 0) {
 							cost = 1000;
 						}else
-							cost = prob / c.cost;
+							cost = prob * c.cost;
 						if (cost > pre_cost) {
 							pre_cost = cost;
 							//tupleID = current.getKey();
@@ -506,8 +534,6 @@ public class Domain {
 	}
 	/**
 	 * 删除重复数据
-	 * @param List<List<Integer>> keyList_list
-	 * @param HashMap<Integer,String[]> dataSet
 	 * */
 	public void deleteDuplicate(List<List<Integer>> keyList_list, HashMap<Integer,String[]> dataSet){
 //		System.out.println("\tDuplicate keys: ");
@@ -547,7 +573,6 @@ public class Domain {
 
 	/**
 	 * 合并两个Domain中的tuple部分，它们原属于同一个Tuple
-	 * @param Tuple t1 , Tuple t2
 	 * */
 
 	public Tuple combineTuple (Tuple t1 , Tuple t2, int[] sameID){
@@ -750,13 +775,15 @@ public class Domain {
 				ki++;
 			}else{
 
-				System.out.println("Conflict:");
+				/*System.out.println("Conflict:");
 				System.out.println("\tcontext1 = "+Arrays.toString(group1.get(key).TupleContext));
-				System.out.println("\tcontext2 = "+Arrays.toString(group2.get(key).TupleContext));
+				System.out.println("\tcontext2 = "+Arrays.toString(group2.get(key).TupleContext));*/
+
 				// 把group1 和 group2 中的元组都去掉？
 				group1.remove(key);
 				group2.remove(key);
-				System.out.println("\tKEY = "+key+" ki = "+ki);
+				//System.out.println("\tID = "+key);
+
 //				for(int m = 0;m<keyList.size();m++){
 //					System.out.println(keyList.get(m));
 //				}
@@ -922,12 +949,12 @@ public class Domain {
 									flag[i] = true;
 									combinedTuple = combineTuple(combinedTuple, t, sameID);
 
-									System.err.println("1.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
-									for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
+									//System.err.println("1.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+									/*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
 										if (combinedTuple.TupleContext[a] == null) {
 											System.err.println("debug here 1");
 										}
-									}
+									}*/
 									break;
 								}
 							}
@@ -935,13 +962,13 @@ public class Domain {
 						}
 					} else {
 						combinedTuple = combineTuple(combinedTuple, domain.get(tupleID), sameID);
-						System.err.println("2.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+						//System.err.println("2.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
 
-						for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
+						/*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
 							if (combinedTuple.TupleContext[a] == null) {
 								System.err.println("debug here 2");
 							}
-						}
+						}*/
 
 						flag[i] = true;
 					}
@@ -1223,8 +1250,6 @@ public class Domain {
 
 	/**
 	 * 根据属性列的编号ID和当前遍历到的Tuple，获得对应的属性值values
-	 * @param Tuple tuple
-	 * @param String[] attributeIDs
 	 * @return values
 	 * */
 
@@ -1262,7 +1287,6 @@ public class Domain {
 
 	/**
 	 * 打印划分后的所有Group
-	 * @param List<HashMap<Integer, List>> groups
 	 * */
 	public void printGroup(List<HashMap<Integer, Tuple>> groups){
 		HashMap<Integer, Tuple> group = null;
@@ -1285,7 +1309,6 @@ public class Domain {
 
 	/**
 	 * 打印整个数据集的内容
-	 * @param HashMap<Integer, String[]> dataSet
 	 * */
 	public void printDataSet(HashMap<Integer, String[]> dataSet){
 		System.out.println("\n==========DataSet Content==========");
@@ -1316,7 +1339,7 @@ public class Domain {
 			for(Tuple t: tuples){
 				System.out.print(Arrays.toString(t.getContext())+" ");
 			}
-
+			System.out.println();
 		}
 	}
 }
