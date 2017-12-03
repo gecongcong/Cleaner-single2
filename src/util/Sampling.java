@@ -7,14 +7,16 @@ import java.util.*;
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
     public static String sourceFile = baseURL + "test/source.txt";
-    public static String sampleFile = baseURL + "test/sample.txt";
+    public static String trainFile = baseURL + "test/trainData.txt";
+    public static String testFile = baseURL + "test/testData.txt";
     public static HashMap<String, ArrayList<Integer>> dataMap = new HashMap<>();//存放对应这条String的所有元组ID
 
-    public static void run(String sourceFile, String sampleFile, int sampleNum, int[] ignoredIDs) {
+    public static void run(String sourceFile, String trainFile, String testFile, int sampleNum, int[] ignoredIDs) {
         //read data set from sourceFile
         FileReader reader;
         ArrayList<String> dataSet = new ArrayList<>();  //存放原始数据
-        ArrayList<String> sampleData = new ArrayList<>();  //存放采样后的数据
+        ArrayList<String> trainData = new ArrayList<>();  //存放采样后的训练数据
+        ArrayList<String> testData = new ArrayList<>();  //存放采样后的测试数据
         try {
             reader = new FileReader(sourceFile);
             BufferedReader br = new BufferedReader(reader);
@@ -28,18 +30,18 @@ public class Sampling {
                 int old_i = 0;
                 for (int k = 0; k < ignoredIDs.length; k++) {
                     for (int new_i = 0; new_i < newTuple.length; new_i++) {
-                        if(new_i!=ignoredIDs[k]){
+                        if (new_i != ignoredIDs[k]) {
                             newTuple[new_i] = tuple[old_i];
                             old_i++;
-                        }else{
+                        } else {
                             old_i++;
                         }
                     }
                 }
                 String newLine = Arrays.toString(newTuple)
-                        .replaceAll("\\[","")
-                        .replaceAll("]","")
-                        .replaceAll(" ","");
+                        .replaceAll("\\[", "")
+                        .replaceAll("]", "")
+                        .replaceAll(" ", "");
                 if (!dataMap.containsKey(newLine)) {
                     ArrayList<Integer> linkIDs = new ArrayList<>();
                     linkIDs.add(lineID);
@@ -47,7 +49,7 @@ public class Sampling {
                 } else {
                     ArrayList<Integer> linkIDs = dataMap.get(newLine);
                     linkIDs.add(lineID);
-                    dataMap.put(newLine,linkIDs);
+                    dataMap.put(newLine, linkIDs);
                 }
                 lineID++;
             }
@@ -59,38 +61,58 @@ public class Sampling {
 
         //do sampling
         double ratio = (double) sampleNum / dataSet.size();
+        ArrayList<Integer> trainIDs = new ArrayList<>();    //训练集tupleIDs
+
         Iterator<Map.Entry<String, ArrayList<Integer>>> iter = dataMap.entrySet().iterator();
-        while (iter.hasNext()){
+        while (iter.hasNext()) {
             Map.Entry<String, ArrayList<Integer>> entry = iter.next();
             //String keywords = entry.getKey();
             ArrayList<Integer> linkedIDs = entry.getValue();
             int size = linkedIDs.size();
-            int sample_size = (int)Math.round(size * ratio);
+            int sample_size = (int) Math.round(size * ratio);
 
-            int i=0;
+            int i = 0;
             int random_result;
             boolean[] bool = new boolean[sample_size];
-            int num=0;
-            while (i<sample_size){
-                do{
+            int num = 0;
+            while (i < sample_size) {
+                do {
                     random_result = linkedIDs.get(getRandomIndex(size));//采样得到random_result这个tupleID
-                }while (bool[num]);
+                    trainIDs.add(random_result);
+                } while (bool[num]);
+                bool[num] = true;
                 num++;
                 //寻找random result对应的tuple,并存入sampleData中
-                sampleData.add(dataSet.get(random_result));
+                trainData.add(dataSet.get(random_result));
                 i++;
             }
         }
-        writeToFile(sampleData,sampleFile);
+        //得到与训练集互斥的测试集
+        for (int i = 0; i < dataSet.size(); i++) {
+            boolean flag = false;
+            for (int trainID : trainIDs) {
+                if (i == trainID) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                testData.add(dataSet.get(i));
+            }
+        }
+
+        writeToFile(trainData, trainFile);//采样得到训练集
+
+        writeToFile(testData, testFile);//采样得到测试集
     }
 
     public static void main(String[] args) {
-        int sampleNum = 5;
+        int sampleNum = 2000;
         int[] ignoredIDs = {7};
-        run(sourceFile,sampleFile, sampleNum, ignoredIDs);
+        run(sourceFile, trainFile, testFile, sampleNum, ignoredIDs);
     }
 
-    public static int getRandomIndex(int size){
+    public static int getRandomIndex(int size) {
         Random random = new Random();
         int result = random.nextInt(size);
         System.out.println("random int = " + result);
@@ -99,10 +121,11 @@ public class Sampling {
 
     /**
      * 生成n个不同的随机数，且随机数区间为[0,random_size)
+     *
      * @param n
      * @return
      */
-    public ArrayList getDiffNum(int n,int random_size){
+    public ArrayList getDiffNum(int n, int random_size) {
         // 生成 [0-n) 个不重复的随机数
         // list 用来保存这些随机数
         ArrayList list = new ArrayList();
@@ -120,7 +143,7 @@ public class Sampling {
         return list;
     }
 
-    public static void writeToFile(ArrayList<String> list, String url){
+    public static void writeToFile(ArrayList<String> list, String url) {
         File file = new File(url);
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -138,13 +161,13 @@ public class Sampling {
             }
             fw = new FileWriter(file);
             bw = new BufferedWriter(fw);
-            for(String tuple: list){
+            for (String tuple : list) {
                 bw.write(tuple);
                 bw.newLine();
             }
             bw.close();
             fw.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
