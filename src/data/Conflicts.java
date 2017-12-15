@@ -6,6 +6,6 @@ import java.util.List;
 public class Conflicts {
 	
 	List<ConflictTuple> tuples = new ArrayList<ConflictTuple>();
-	
-	public Conflicts(){}
+
+	ArrayList<Integer> tupleIDs = new ArrayList<>();
 }

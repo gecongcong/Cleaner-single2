@@ -27,7 +27,9 @@ public class Domain {
     //	public List<HashMap<Integer, Tuple>> groups = null;
     public List<List<HashMap<Integer, Tuple>>> Domain_to_Groups = null;    //List<groups> 存放group by key后，Domain中包含的group的编号
 
-    public HashMap<Integer, Conflicts> conflicts = new HashMap<Integer, Conflicts>();    //记录冲突的元组，并按Domain分类 <DomainID, ConflictTuple>
+//    public HashMap<Integer, Conflicts> conflicts = new HashMap<>();    //记录冲突的元组，并按Domain分类 <DomainID, ConflictTuple>
+
+    public ArrayList<Integer> conflicts = new ArrayList<>();//记录冲突元组所在的行ID
 
     //属性列，如果数据集中没有给出，则构造一个属性列：Attr1,Attr2,Attr3,...,AttrN
     public static String[] header = null;
@@ -140,6 +142,7 @@ public class Domain {
                         }
 
                         Tuple t = new Tuple();
+                        t.tupleID = key;
                         t.setContext(tupleContext);
                         t.setAttributeIndex(tupleContextID);
 
@@ -768,15 +771,17 @@ public class Domain {
 
                 //根据DomainID将冲突的Tuple记录下来
                 // 元组将冲突的属性记录下来
-                ct1.setConflictIDs(sameID);
-                ct2.setConflictIDs(sameID);
+//                ct1.setConflictIDs(sameID);
+//                ct2.setConflictIDs(sameID);
                 // 记录所在的domain
-                ct1.domainID = Domain1;
-                ct2.domainID = Domain2;
+//                ct1.domainID = Domain1;
+//                ct2.domainID = Domain2;
 
                 // 冲突的元组数
-                addConflict(key, ct1);
-                addConflict(key, ct2);
+//                addConflict(key, ct1);
+//                addConflict(key, ct2);
+                conflicts.add(key);
+
 
                 // 每个元组都是冲突的，return null
                 if (keyList.isEmpty()) {
@@ -789,7 +794,7 @@ public class Domain {
     }
 
 
-    public void addConflict(int tupleID, ConflictTuple t) {
+    /*public void addConflict(int tupleID, ConflictTuple t) {
         Conflicts oldct = conflicts.get(tupleID);
         if (null == oldct) {    //该Domain中尚未添加冲突元组
             Conflicts newct = new Conflicts();
@@ -798,7 +803,7 @@ public class Domain {
         } else {
             oldct.tuples.add(t);
         }
-    }
+    }*/
 
     /**
      * 根据key值求两个group的交集
@@ -845,6 +850,28 @@ public class Domain {
         return keys;
     }
 
+    public boolean ifSameValue(int[] conflictIDs, Tuple t, Tuple ct) {
+        boolean result = false;
+        int count = 0;
+        int i = 0;
+        int ti = 0, cti = 0;
+        for (; i < conflictIDs.length && conflictIDs[i] != -1; i++) {
+            while (ti < t.AttributeIndex.length) {
+                if (t.AttributeIndex[ti] == conflictIDs[i]) {
+                    break;
+                } else ti++;
+            }
+            while (cti < ct.AttributeIndex.length) {
+                if (ct.AttributeIndex[cti] == conflictIDs[i]) {
+                    break;
+                } else cti++;
+            }
+            if (cti == ct.AttributeIndex.length || ti == t.AttributeIndex.length) return false;
+            if (t.TupleContext[ti].equals(ct.TupleContext[cti])) count++;
+        }
+        if (count == i) result = true;
+        return result;
+    }
 
     public boolean ifSameValue(int[] conflictIDs, Tuple t, ConflictTuple ct) {
         boolean result = false;
@@ -869,29 +896,151 @@ public class Domain {
         return result;
     }
 
+    /**
+     * 为冲突元组找到候选的替换方案(new)
+     */
+    public void findCandidate(ArrayList<Integer> conflicts, List<HashMap<Integer, Tuple>> domains, HashMap<String, Double> attributesPROB, ArrayList<Integer> ignoredIDs) {
+
+        for (Integer id : conflicts) {
+            double prob = -1;
+            Tuple fixTuple = new Tuple();
+            boolean ischange = false;
+            for (int k = 0; k < domains.size(); k++) {
+                Tuple candidateTuple = new Tuple();
+                ArrayList<String[]> tmp_list = new ArrayList<>();//记录该冲突元组修复方案中对每一个domain的选择
+//                String[] combinedContent = null;
+                HashMap<Integer, Tuple> first_domain = domains.get(k);
+                Tuple ct = first_domain.get(id);
+                int tupleID = ct.tupleID;
+                tmp_list.add(ct.getContext());
+
+                if (null != ct) {
+                    Tuple combinedTuple = ct;
+                    for (int i = 0; i < domains.size(); i++) {  //还需加一个限制，排除base Domain
+                        if (i == k) {
+                            continue;
+                        }
+                        HashMap<Integer, Tuple> domain = domains.get(i);
+                        Tuple firstTuple = domain.entrySet().iterator().next().getValue();
+
+                        int[] sameID = findSameID(firstTuple.AttributeIndex, combinedTuple.AttributeIndex);
+                        if (sameID[0] != -1) {//说明有交集的属性
+                            Iterator<Entry<Integer, Tuple>> iter = domain.entrySet().iterator();
+                            while (iter.hasNext()) {
+                                Entry<Integer, Tuple> en = iter.next();
+                                Tuple t = en.getValue();
+                                if (ifContains(sameID, t.AttributeIndex) && ifSameValue(sameID, t, ct)) { //说明属性值也相同
+
+                                    tmp_list.add(t.getContext());
+
+                                    combinedTuple = combineTuple(combinedTuple, t, sameID);
+                                    System.err.println("3.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+
+                                    //test
+                                    /*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
+                                        if (combinedTuple.TupleContext[a] == null) {
+                                            System.err.println("debug here 3");
+                                        }
+                                    }*/
+                                    break;
+                                }
+                            }
+                        } else {//没有交集，直接合并
+                            Tuple t = domain.get(tupleID);
+                            combinedTuple = combineTuple(combinedTuple, t, sameID);
+                            tmp_list.add(t.getContext());
+                            System.err.println("4.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+
+                            //test
+                            /*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
+                                if (combinedTuple.TupleContext[a] == null) {
+                                    System.err.println("debug here 4");
+                                }
+                            }*/
+
+                        }
+                    }
+                    candidateTuple = combinedTuple;
+                } else {
+                    System.out.println("Can't find candidate for conflict tuple");
+                }
+
+                double tmp_prob = 1;
+                for (String[] value : tmp_list) {
+                    Arrays.sort(value);
+                    Double curr_prob = attributesPROB.get(Arrays.toString(value));
+                    if (null == curr_prob) {
+                        curr_prob = 0d;
+                    }
+                    tmp_prob *= curr_prob;
+                }
+                if (tmp_prob > prob) {
+                    ischange = true;
+                    prob = tmp_prob;
+                    fixTuple = candidateTuple;
+                    System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");
+                }
+            }
+
+            //修改dataset中这一条的数据
+            if (ischange) {
+
+                String[] ignoredValues = null;
+                if (ignoredIDs.size() > 0) {
+                    ignoredValues = new String[ignoredIDs.size()];
+                    for (int i = 0; i < ignoredIDs.size(); i++) {
+                        ignoredValues[i] = dataSet.get(id)[ignoredIDs.get(i)];
+                    }
+                }
+
+                String[] newTupleContext = new String[header.length];
+                for (int i = 0; i < header.length; i++) {
+                    if (ignoredIDs.size() > 0) {
+                        for (int j = 0; j < ignoredIDs.size(); j++) {
+                            if (i == ignoredIDs.get(j)) {
+                                newTupleContext[i] = ignoredValues[j];
+                            }
+                        }
+                    }
+                    for (int k = 0; k < fixTuple.AttributeIndex.length; k++) {
+                        if (i == fixTuple.AttributeIndex[k]) {
+                            newTupleContext[i] = fixTuple.TupleContext[k];
+                        }
+                    }
+                }
+                String[] old_tuple = dataSet.get(id);
+                for (int index = 0; index < newTupleContext.length; index++) {
+                    if (null == newTupleContext[index]) {
+                        newTupleContext[index] = old_tuple[index];
+                    }
+                }
+                dataSet.put(id, newTupleContext);
+                System.out.println("ID = [" + id + "] fix Tuple = " + Arrays.toString(newTupleContext) + "\n");
+            }
+
+        }
+        System.out.println();
+    }
 
     /**
-     * 为冲突元组找到候选的替换方案
+     * 为冲突元组找到候选的替换方案(old)
      */
-
     public void findCandidate(HashMap<Integer, Conflicts> conflicts, List<List<HashMap<Integer, Tuple>>> Domain_to_Groups, List<HashMap<Integer, Tuple>> domains, List<HashMap<String, Double>> attributesPROBList, ArrayList<Integer> ignoredIDs) {
 
         Tuple candidateTuple = new Tuple();
         //根据冲突元组，按不同的组合形成候选的修正方案
-
 
         Iterator<Entry<Integer, Conflicts>> conflict_iter = conflicts.entrySet().iterator();
 
         while (conflict_iter.hasNext()) {
             Boolean ischange = false;
 
-
             Entry<Integer, Conflicts> entry = conflict_iter.next();
             int tupleID = entry.getKey();
             Conflicts conf = entry.getValue();
             List<ConflictTuple> list = conf.tuples;
 
-            HashMap<Tuple, Integer> weight = new HashMap<Tuple, Integer>();
+            HashMap<Tuple, Integer> weight = new HashMap<>();
 
             for (int tt = 0; tt < attributesPROBList.size(); tt++) {
 
@@ -910,7 +1059,7 @@ public class Domain {
                         HashMap<Integer, Tuple> domain = domains.get(i);
                         Tuple firstTuple = domain.entrySet().iterator().next().getValue();
                         int[] sameID = findSameID(firstTuple.AttributeIndex, combinedTuple.AttributeIndex);
-                        if (sameID[0] != -1) { // 说明有交集的属性
+                        if (sameID[0] != -1) { //说明有交集的属性
                             List<HashMap<Integer, Tuple>> cur_groups = Domain_to_Groups.get(i);
                             for (HashMap<Integer, Tuple> group : cur_groups) {
                                 Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
@@ -923,7 +1072,7 @@ public class Domain {
 
                                         //System.err.println("1.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
                                     /*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
-										if (combinedTuple.TupleContext[a] == null) {
+                                        if (combinedTuple.TupleContext[a] == null) {
 											System.err.println("debug here 1");
 										}
 									}*/
@@ -937,7 +1086,7 @@ public class Domain {
                             //System.err.println("2.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
 
 						/*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
-							if (combinedTuple.TupleContext[a] == null) {
+                            if (combinedTuple.TupleContext[a] == null) {
 								System.err.println("debug here 2");
 							}
 						}*/
@@ -1161,8 +1310,8 @@ public class Domain {
     /**
      * 标记重复数据
      * */
-	/*
-	public List<List<Integer>> checkDuplicate(List<List<HashMap<Integer, Tuple>>> Domain_to_Groups){
+    /*
+    public List<List<Integer>> checkDuplicate(List<List<HashMap<Integer, Tuple>>> Domain_to_Groups){
 
 		List<List<Integer>> keyList_list = new ArrayList<List<Integer>>();
 		int round = 0;
@@ -1287,6 +1436,14 @@ public class Domain {
             System.out.println("key = " + key + " value = " + Arrays.toString(value));
         }
         System.out.println();
+    }
+
+    public void printConflicts(ArrayList<Integer> conflicts) {
+        System.out.print("Conflict ID: [");
+        for (Integer id : conflicts) {
+            System.out.print("" + id + " ");
+        }
+        System.out.print("]\n");
     }
 
     public void printConflicts(HashMap<Integer, Conflicts> conflicts) {

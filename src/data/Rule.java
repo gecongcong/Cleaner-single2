@@ -155,8 +155,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/Users/gecongcong/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/Users/gecongcong/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -307,7 +307,7 @@ public class Rule {
         //Write combined rules to a new File
         Iterator<Map.Entry<String, String>> iter = clean_map.entrySet().iterator();
         try {
-            String writeFile = "/Users/gecongcong/experiment/dataSet/" + dataName + "/groundRules.txt";
+            String writeFile = "/home/gcc/experiment/dataSet/" + dataName + "/groundRules.txt";
             File writefile = new File(writeFile);
             FileWriter fw = new FileWriter(writefile);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -397,8 +397,8 @@ public class Rule {
             BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
             BufferedWriter dataBw[] = new BufferedWriter[partitionNum];
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/Users/gecongcong/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/Users/gecongcong/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }

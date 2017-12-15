@@ -198,10 +198,10 @@ public class Test {
             if (!current_ground.equals(current_dirty)) {
                 total_error_num++;
                 if (!current_clean.equals(current_ground)) {
-                    System.out.println("no cleaned tuple: " + (i + 1));
-                    System.out.println("current_ground = " + current_ground);
-                    System.out.println("current_dirty = " + current_dirty);
-                    System.out.println("current_clean = " + current_clean);
+//                    System.out.println("no cleaned tuple: " + (i + 1));
+//                    System.out.println("current_ground = " + current_ground);
+//                    System.out.println("current_dirty = " + current_dirty);
+//                    System.out.println("current_clean = " + current_clean);
 
                 }
             }
@@ -211,12 +211,12 @@ public class Test {
                     correct_update_num++;
                 } else {
                     over_correct_num++;
-                    System.err.println("over correct id = " + (i + 1));
+//                    System.err.println("over correct id = " + (i + 1));
                 }
             }
         }
         System.out.println();
-        System.err.println("over correct number = " + over_correct_num);
+//        System.err.println("over correct number = " + over_correct_num);
         recall = (double) correct_update_num / total_error_num;
         precision = (double) correct_update_num / total_update_num;
         System.out.println("\nRecall = " + recall);
@@ -282,16 +282,16 @@ public class Test {
         ArrayList<HashMap<Integer, String[]>> dataSetList = new ArrayList<>();
         FileReader reader;
         try {
-            reader = new FileReader("/Users/gecongcong/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
+            reader = new FileReader("/home/gcc/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
 
             BufferedReader br = new BufferedReader(reader);
             String line = null;
             while ((line = br.readLine()) != null && line.length() != 0) {
                 rules.add(line);
             }
-
-            Rule.partitionMLN("/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[2],
-                    "/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[1],
+            br.close();
+            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
+                    "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
                     rules, partitionNum, args[0]);
 
             ArrayList<String> newMLNs = new ArrayList<>();
@@ -301,23 +301,23 @@ public class Test {
             double startTime = System.currentTimeMillis();    //获取开始时间
             for (int i = 0; i < partitionNum; i++) {
                 System.out.println("************ PARTITION" + i + " ************");
-                String rulesWriteFile = "/Users/gecongcong/experiment/dataSet/synthetic-car/rules-new" + i + ".txt";
-                String dataWriteFile = "/Users/gecongcong/experiment/dataSet/synthetic-car/data-new" + i + ".txt";
-                String outFile = "/Users/gecongcong/experiment/dataSet/synthetic-car/out-" + i + ".txt";
+                String rulesWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/rules-new" + i + ".txt";
+                String dataWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/data-new" + i + ".txt";
+                String outFile = "/home/gcc/experiment/dataSet/synthetic-car/out-" + i + ".txt";
                 String mlnArgs[] = {dataWriteFile, rulesWriteFile, outFile};
-                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+                //Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
 
-            normalizationMLN(newMLNs, dataURLs, "/Users/gecongcong/experiment/dataSet/synthetic-car/out.txt");
+            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/synthetic-car/out.txt");
             //清洗阶段
             String mlnArgs[] = {args[0], args[2]};
             HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
 //            for(int i = 0; i < partitionNum; i++) {
-//                String rulesWriteFile = "/Users/gecongcong/experiment/dataSet/synthetic-car/rules-new"+i+".txt";
-//                String dataWriteFile = "/Users/gecongcong/experiment/dataSet/synthetic-car/data-new"+i+".txt";
+//                String rulesWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/rules-new"+i+".txt";
+//                String dataWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/data-new"+i+".txt";
 //                String mlnArgs[] = {dataWriteFile, rulesWriteFile, args[2]};
 //                HashMap<Integer,String[]> dataSet = Main.main(mlnArgs);
 //                dataSetList.add(dataSet);
@@ -335,17 +335,19 @@ public class Test {
 //            });
             Main.writeToFile(cleanedFileURL, dataSet, Domain.header);
             System.out.println("cleanedDataSet.txt stored in=" + cleanedFileURL);
-            br.close();
+
             double endTime = System.currentTimeMillis();    //获取结束时间
             double totalTime = (endTime - startTime) / 1000;
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
+
+            evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL,
+                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //Main.updateprogMLN("/Users/gecongcong/experiment/dataSet/synthetic-car/out.txt" , "/Users/gecongcong/experiment/dataSet/synthetic-car/synthetic-car-1q-test.txt");
+        //Main.updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , "/home/gcc/experiment/dataSet/synthetic-car/synthetic-car-1q-test.txt");
 
-        evaluate("/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL, "/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[2]);
-        //calPrecision("/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL, "/Users/gecongcong/experiment/dataSet/" + args[0] + "/" + args[2]);
+        //calPrecision("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
     }
 }

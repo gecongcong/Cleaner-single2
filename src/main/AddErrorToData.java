@@ -9,9 +9,9 @@ import java.io.FileReader;
  * Created by gcc on 17-9-27.
  */
 public class AddErrorToData {
-    public String sourceDataFile = "/home/gcc/experiment/dataSet/HAI/HAI-3q.csv";
+    public String sourceDataFile = "/home/gcc/experiment/dataSet/synthetic-car/ground_truth-1q.txt";
     public String errorRate = "10";//for example： 10, 30, 50
-    public String errorDataFile = "/home/gcc/experiment/dataSet/HAI/HAI-3q-"+errorRate+"%-error.csv";
+    public String errorDataFile = "/home/gcc/experiment/dataSet/synthetic-car/fulldb-1q-"+errorRate+"%-error.txt";
 
     public void addErrorRate(String sourceDataFile, String errorDataFile){
         FileReader reader;

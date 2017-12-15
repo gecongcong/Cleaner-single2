@@ -44,8 +44,8 @@ public class PickData {
 
     public static void main(String[] args) throws Exception{
         String sourceFile = "/home/gcc/experiment/dataSet/synthetic-car/ground_truth-10q.csv";
-        String writeFile = "/home/gcc/experiment/dataSet/synthetic-car/ground_truth-3q.csv";
-        int sampleSize = 3000;
+        String writeFile = "/home/gcc/experiment/dataSet/synthetic-car/ground_truth_1q.csv";
+        int sampleSize = 1000;
         generateData(sourceFile,writeFile,sampleSize);
     }
 }

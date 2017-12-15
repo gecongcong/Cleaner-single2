@@ -13,11 +13,11 @@ import java.util.Map.Entry;
 
 public class Main {
     static String[] header = null;
-    static String baseURL = "/Users/gecongcong/experiment/dataSet";    // experiment baseURL
+    static String baseURL = "/home/gcc/experiment/dataSet";    // experiment baseURL
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
     static ArrayList<Integer> ignoredIDs = null;
-    public static String rulesURL = baseURL + "/synthetic-car/rules.txt";
+    public static String rulesURL = baseURL + "/synthetic-car/rules-first-order.txt";
     //public static String dataURL = baseURL + "/synthetic-car/synthetic-car-5q-10%-error.csv";
 
 
@@ -26,7 +26,7 @@ public class Main {
 //        ArrayList<String> rules = new ArrayList<String>();
 //        ArrayList<String> newerRules = new ArrayList<String>();
 //        try {
-//            FileReader reader = new FileReader("/Users/gecongcong/experiment/dataSet/synthetic-car/rules.txt");
+//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/synthetic-car/rules.txt");
 //            BufferedReader br = new BufferedReader(reader);
 //            String line = null;
 //            while((line = br.readLine()) != null && line.length()!=0) {
@@ -200,7 +200,7 @@ public class Main {
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
 
-            //updateprogMLN("/Users/gecongcong/experiment/dataSet/synthetic-car/out.txt" , dataURL);
+            //updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , dataURL);
         }
     }
 
@@ -267,7 +267,7 @@ public class Main {
         }
 
         domain.printConflicts(domain.conflicts);
-        domain.findCandidate(domain.conflicts, domain.Domain_to_Groups, domain.domains, attributesPROBList, ignoredIDs);
+        domain.findCandidate(domain.conflicts, domain.domains, attributesPROBList.get(0), ignoredIDs);
 
 
         //print dataset after cleaning
