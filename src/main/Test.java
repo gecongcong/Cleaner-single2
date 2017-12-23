@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static main.Main.cleanedFileURL;
+import static main.Main.setLineID;
 
 /**
  * Created by gcc on 17-7-25.
@@ -100,34 +101,40 @@ public class Test {
             HashMap<String, GroundRule> map = calTupleNum(newMLN, dataURL);
             mapList.add(map);
         }
-        HashMap<String, GroundRule> map = mapList.get(0);
-        HashMap<String, Double> avgMAP = new HashMap<>(map.size());
-        Iterator<Map.Entry<String, GroundRule>> iter = map.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<String, GroundRule> entry = iter.next();
-            String clause = entry.getKey();
-            GroundRule gr = entry.getValue();
-            Double prob = Double.parseDouble(gr.weight);
-            int num = gr.number;
-            if (num == 0) {
-                avgMAP.put(clause, prob);
-            } else {
-                int count = num;
-                double avgPROG = prob * num;
-                for (int i = 1; i < mapList.size(); i++) {
-                    GroundRule gr2 = mapList.get(i).get(clause);
+        HashMap<String, Double> avgMAP = new HashMap<>(mapList.get(0).size());
+        for(int k=0;k<mapList.size();k++){
+            HashMap<String, GroundRule> map = mapList.get(k);
 
-                    if (gr2 != null) {
-                        Double prob2 = Double.parseDouble(gr2.weight);
-                        int num2 = gr2.number;
-                        avgPROG += prob2 * num2;
-                        count += num2;
+            Iterator<Map.Entry<String, GroundRule>> iter = map.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<String, GroundRule> entry = iter.next();
+                String clause = entry.getKey();
+                GroundRule gr = entry.getValue();
+                Double prob = Double.parseDouble(gr.weight);
+                int num = gr.number;
+                if (num == 0) {
+                    avgMAP.put(clause, prob);
+                } else {
+                    int count = num;
+                    double avgPROG = prob * num;
+                    for (int i = k+1; i < mapList.size(); i++) {
+                        GroundRule gr2 = mapList.get(i).get(clause);
+
+                        if (gr2 != null) {
+                            Double prob2 = Double.parseDouble(gr2.weight);
+                            int num2 = gr2.number;
+                            avgPROG += prob2 * num2;
+                            count += num2;
+                            mapList.get(i).remove(clause);
+                        }
                     }
+                    avgPROG = avgPROG / count;
+                    avgMAP.put(clause, avgPROG);
                 }
-                avgPROG = avgPROG / count;
-                avgMAP.put(clause, avgPROG);
             }
         }
+
+
 
         //write updated clauses to file
         try {
@@ -174,6 +181,68 @@ public class Test {
             e.printStackTrace();
         }
         return context;
+    }
+
+    //根据sample的tupleID,从ground truth File中提取对应的数据，用于evaluate()
+    public static ArrayList<String> pickData(HashMap<Integer, String[]> dataSet, String groundURL) {
+
+        ArrayList<String> ground_data = read(groundURL);
+        ArrayList<String> sample_ground_data = new ArrayList<>(dataSet.size());
+        Iterator<Map.Entry<Integer, String[]>> iter = dataSet.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Integer, String[]> entry = iter.next();
+            int tupleID = entry.getKey();
+            sample_ground_data.add(ground_data.get(tupleID-1));
+        }
+        return sample_ground_data;
+    }
+
+    /**
+     * Recall is the ratio of correctly updated attributes to the total number of errors.
+     * Precision is the ratio of correctly updated attributes (exact matches) to the total number of updates
+     */
+    public static void evaluate(ArrayList<String> ground_data, String cleanedURL, String dirtyURL) {
+        ArrayList<String> cleaned_data = read(cleanedURL);
+        ArrayList<String> dirty_data = read(dirtyURL);
+        int correct_update_num = 0;
+        int total_error_num = 0;
+        int total_update_num = 0;
+        int over_correct_num = 0;
+        double recall;
+        double precision;
+
+        System.err.print("no cleaned Line: \n[");
+        for (int i = 0; i < ground_data.size(); i++) {
+            String current_ground = ground_data.get(i);
+            String current_dirty = dirty_data.get(i);
+            String current_clean = cleaned_data.get(i);
+            if (!current_ground.equals(current_dirty)) {
+                total_error_num++;
+                if (!current_clean.equals(current_ground)) {
+                    System.err.print((i+2)+" ");  //no cleaned tuple:
+//                    System.out.println("current_ground = " + current_ground);
+//                    System.out.println("current_dirty = " + current_dirty);
+//                    System.out.println("current_clean = " + current_clean);
+
+                }
+            }
+            if (!current_clean.equals(current_dirty)) {
+                total_update_num++;
+                if (current_clean.equals(current_ground)) {
+                    correct_update_num++;
+                } else {
+                    over_correct_num++;
+//                    System.err.println("over correct id = " + (i + 1));
+                }
+            }
+        }
+        System.err.println("]");
+//        System.err.println("over correct number = " + over_correct_num);
+        System.out.println("\ntotal error number = " + total_error_num);
+        recall = (double) correct_update_num / total_error_num;
+        precision = (double) correct_update_num / total_update_num;
+        System.out.println("\nRecall = " + recall);
+        System.out.println("\nPrecision = " + precision);
     }
 
     /**
@@ -282,17 +351,19 @@ public class Test {
         ArrayList<HashMap<Integer, String[]>> dataSetList = new ArrayList<>();
         FileReader reader;
         try {
+            //Read first-order-logic rules from file
             reader = new FileReader("/home/gcc/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
-
             BufferedReader br = new BufferedReader(reader);
+
             String line = null;
             while ((line = br.readLine()) != null && line.length() != 0) {
                 rules.add(line);
             }
             br.close();
-            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
+            /*Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
-                    rules, partitionNum, args[0]);
+                    rules, partitionNum, args[0]);*/
+            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
 
             ArrayList<String> newMLNs = new ArrayList<>();
             ArrayList<String> dataURLs = new ArrayList<>();
@@ -301,23 +372,23 @@ public class Test {
             double startTime = System.currentTimeMillis();    //获取开始时间
             for (int i = 0; i < partitionNum; i++) {
                 System.out.println("************ PARTITION" + i + " ************");
-                String rulesWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/rules-new" + i + ".txt";
-                String dataWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/data-new" + i + ".txt";
-                String outFile = "/home/gcc/experiment/dataSet/synthetic-car/out-" + i + ".txt";
+                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new" + i + ".txt";
+                String dataWriteFile = "/home/gcc/experiment/dataSet/HAI/data-new" + i + ".txt";
+                String outFile = "/home/gcc/experiment/dataSet/HAI/out-" + i + ".txt";
                 String mlnArgs[] = {dataWriteFile, rulesWriteFile, outFile};
                 //Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
 
-            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/synthetic-car/out.txt");
+            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/HAI/out.txt");
             //清洗阶段
             String mlnArgs[] = {args[0], args[2]};
             HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
 //            for(int i = 0; i < partitionNum; i++) {
-//                String rulesWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/rules-new"+i+".txt";
-//                String dataWriteFile = "/home/gcc/experiment/dataSet/synthetic-car/data-new"+i+".txt";
+//                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new"+i+".txt";
+//                String dataWriteFile = "/hom e/gcc/experiment/dataSet/HAI/data-new"+i+".txt";
 //                String mlnArgs[] = {dataWriteFile, rulesWriteFile, args[2]};
 //                HashMap<Integer,String[]> dataSet = Main.main(mlnArgs);
 //                dataSetList.add(dataSet);
@@ -340,14 +411,30 @@ public class Test {
             double totalTime = (endTime - startTime) / 1000;
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
+            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q.csv","/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q-hasID.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q-hasID.csv");
+            ground_data.sort(new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    int index1 = o1.indexOf(",");
+                    int index2 = o2.indexOf(",");
+                    int id1 = Integer.parseInt(o1.substring(0, index1));
+                    int id2 = Integer.parseInt(o2.substring(0, index2));
+                    if (id1 > id2) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+            Main.writeToFile(Domain.header, ground_data, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
 
-            evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL,
-                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
+            evaluate(ground_data, cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
+            /*evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
+                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //Main.updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , "/home/gcc/experiment/dataSet/synthetic-car/synthetic-car-1q-test.txt");
-
-        //calPrecision("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
+        //Main.updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
     }
 }

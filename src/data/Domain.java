@@ -16,11 +16,11 @@ import spellchecker.SpellChecker;
 
 public class Domain {
 
-    //public static String baseURL = "E:\\experiment\\";
+    public static double MIN_DOUBLE = 0.0001;
 
+    public static int THRESHOLD = 8;
 
-    public HashMap<Integer, String[]> dataSet = new HashMap<Integer, String[]>();
-
+    public HashMap<Integer, String[]> dataSet = new HashMap<>();
 
     //	public List<String[]> dataSet = new ArrayList<String[]>();
     public List<HashMap<Integer, Tuple>> domains = null;
@@ -88,8 +88,6 @@ public class Domain {
      * @param ifHeader
      * @param rules
      */
-
-
     public HashMap<Integer, String[]> init(String fileURL, String splitString, boolean ifHeader, List<Tuple> rules) {
         // read file content from file 读取文件内容
         FileReader reader;
@@ -304,6 +302,7 @@ public class Domain {
                 HashMap<Integer, Tuple> group = new HashMap<Integer, Tuple>();
                 group.put(k, tuple1);    //add Ti to group(i), now G(i)={Ti}
                 String[] reason1 = tuple1.reason;
+                String[] content1 = tuple1.getContext();
                 //int index=0;
 
                 if (!flags.contains(k)) {
@@ -316,26 +315,27 @@ public class Domain {
                             int m = entry2.getKey();
                             if (flags.contains(m)) continue;
                             Tuple tuple2 = entry2.getValue();
+                            String[] content2 = tuple2.getContext();
                             String[] reason2 = tuple2.reason;
 
-                            if (Arrays.equals(reason1, reason2)) {
+                            /*if (Arrays.equals(reason1, reason2)) {//equal改为similarity
+                                group.put(m, tuple2);
+                                flags.add(m);
+                            }*/
+                            String content1_str = Arrays.toString(content1)
+                                    .replaceAll("\\[", "")
+                                    .replaceAll("]", "")
+                                    .replaceAll(" ", "");
+                            String content2_str = Arrays.toString(content2)
+                                    .replaceAll("\\[", "")
+                                    .replaceAll("]", "")
+                                    .replaceAll(" ", "");
+                            if (Arrays.equals(reason1, reason2) || SpellChecker.getDistance(content1_str, content2_str) < THRESHOLD) {
                                 group.put(m, tuple2);
                                 flags.add(m);
                             }
-                            //index++;
                         }
                     }
-//					for(int m=k+1;m<domain_size;m++){
-//						if(flags[m])continue;
-//						Tuple tuple2 = domain.get(m);
-//						String[] reason2 = tuple2.reason;
-//
-//						if(Arrays.equals(reason1,reason2)){
-//							group.put(m, tuple2);
-//							flags[m] = true;
-//						}
-//						//index++;
-//					}
                     if (group.size() > 1) {
                         groups.add(group);
                     }
@@ -346,11 +346,11 @@ public class Domain {
             }
         }
 
-//		int d_index=0;
-//		for(List<HashMap<Integer, Tuple>> d: Domain_to_Groups){
-//			System.out.println("\n*******Domain "+(++d_index)+"*******");
-//			printGroup(d);
-//		}
+        int d_index = 0;
+        for (List<HashMap<Integer, Tuple>> d : Domain_to_Groups) {
+            System.out.println("\n*******Domain " + (++d_index) + "*******");
+            printGroup(d);
+        }
 
     }
 
@@ -376,6 +376,20 @@ public class Domain {
             } else continue;
         }
         return N;
+    }
+
+    public int distanceCost(String[] A, String[] B) {
+        int distance = -1;
+        if (A.length != B.length) {
+            System.err.println("Error: A != B");
+        } else {
+            distance = 0;
+            for (int i = 0; i < A.length; i++) {
+                distance += SpellChecker.getDistance(A[i], B[i]);
+            }
+        }
+
+        return distance;
     }
 
     public HashMap<String, Candidate> spellCheck(HashMap<Integer, Tuple> group) {
@@ -513,15 +527,13 @@ public class Domain {
             }
             DGindex++;
         }
-/*
         //输出修正后的Group结果
-		System.out.println("\n=======After Correct Values By MLN Probability=======");
-		int d_index = 0;
-		for(List<HashMap<Integer, Tuple>> groups: Domain_to_Groups){
-			System.out.println("\n*******Domain "+(++d_index)+"*******");
-			printGroup(groups);
-		}
-*/
+        System.out.println("\n=======After Correct Values By MLN Probability=======");
+        int d_index = 0;
+        for (List<HashMap<Integer, Tuple>> groups : Domain_to_Groups) {
+            System.out.println("\n*******Domain " + (++d_index) + "*******");
+            printGroup(groups);
+        }
     }
 
     /**
@@ -908,8 +920,12 @@ public class Domain {
             for (int k = 0; k < domains.size(); k++) {
                 Tuple candidateTuple = new Tuple();
                 ArrayList<String[]> tmp_list = new ArrayList<>();//记录该冲突元组修复方案中对每一个domain的选择
-//                String[] combinedContent = null;
                 HashMap<Integer, Tuple> first_domain = domains.get(k);
+
+                if (id == 24) {
+                    System.out.println("debug here!");
+                }
+
                 Tuple ct = first_domain.get(id);
                 int tupleID = ct.tupleID;
                 tmp_list.add(ct.getContext());
@@ -923,40 +939,46 @@ public class Domain {
                         HashMap<Integer, Tuple> domain = domains.get(i);
                         Tuple firstTuple = domain.entrySet().iterator().next().getValue();
 
-                        int[] sameID = findSameID(firstTuple.AttributeIndex, combinedTuple.AttributeIndex);
+                        int[] sameID = findSameID(firstTuple.AttributeIndex, combinedTuple.AttributeIndex);//排序过
                         if (sameID[0] != -1) {//说明有交集的属性
                             Iterator<Entry<Integer, Tuple>> iter = domain.entrySet().iterator();
+                            double maxProb = 0.000001;
+                            Tuple maxTuple = null;
                             while (iter.hasNext()) {
                                 Entry<Integer, Tuple> en = iter.next();
                                 Tuple t = en.getValue();
                                 if (ifContains(sameID, t.AttributeIndex) && ifSameValue(sameID, t, ct)) { //说明属性值也相同
 
-                                    tmp_list.add(t.getContext());
+                                    String[] tmp_context = new String[t.getContext().length];
+                                    System.arraycopy(t.getContext(), 0, tmp_context, 0, t.getContext().length);
+                                    Arrays.sort(tmp_context);
+                                    String value = Arrays.toString(tmp_context);
+                                    Double curr_prob = attributesPROB.get(value);
 
-                                    combinedTuple = combineTuple(combinedTuple, t, sameID);
-                                    System.err.println("3.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
-
-                                    //test
-                                    /*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
-                                        if (combinedTuple.TupleContext[a] == null) {
-                                            System.err.println("debug here 3");
-                                        }
-                                    }*/
-                                    break;
+                                    if (curr_prob == null) {
+                                        curr_prob = MIN_DOUBLE;
+                                    }
+                                    if (curr_prob > maxProb) {
+                                        maxTuple = t;
+                                    }
+                                    /*System.err.println("3.current maxTuple = " + Arrays.toString(maxTuple.TupleContext));
+                                    System.err.println("attribute id = " + Arrays.toString(maxTuple.AttributeIndex));*/
                                 }
+                            }
+                            if (null != maxTuple) {
+                                tmp_list.add(maxTuple.getContext());
+                                combinedTuple = combineTuple(combinedTuple, maxTuple, sameID);
+
+                                /*System.err.println("3.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+                                System.err.println("attribute id = " + Arrays.toString(combinedTuple.AttributeIndex));*/
                             }
                         } else {//没有交集，直接合并
                             Tuple t = domain.get(tupleID);
                             combinedTuple = combineTuple(combinedTuple, t, sameID);
                             tmp_list.add(t.getContext());
-                            System.err.println("4.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
 
-                            //test
-                            /*for (int a = 0; a < combinedTuple.TupleContext.length; a++) {
-                                if (combinedTuple.TupleContext[a] == null) {
-                                    System.err.println("debug here 4");
-                                }
-                            }*/
+                            /*System.err.println("4.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
+                            System.err.println("attribute id = " + Arrays.toString(combinedTuple.AttributeIndex));*/
 
                         }
                     }
@@ -967,24 +989,39 @@ public class Domain {
 
                 double tmp_prob = 1;
                 for (String[] value : tmp_list) {
-                    Arrays.sort(value);
-                    Double curr_prob = attributesPROB.get(Arrays.toString(value));
+
+                    String[] tmp_context = new String[value.length];
+                    System.arraycopy(value, 0, tmp_context, 0, value.length);
+                    Arrays.sort(tmp_context);
+                    Double curr_prob = attributesPROB.get(Arrays.toString(tmp_context));
                     if (null == curr_prob) {
-                        curr_prob = 0d;
+                        curr_prob = MIN_DOUBLE;
                     }
                     tmp_prob *= curr_prob;
                 }
                 if (tmp_prob > prob) {
                     ischange = true;
-                    prob = tmp_prob;
+
+                    String[] old_tuple_part = new String[candidateTuple.AttributeIndex.length];
+                    for (int i = 0; i < candidateTuple.AttributeIndex.length; i++) {
+                        int index = candidateTuple.AttributeIndex[i];
+                        old_tuple_part[i] = dataSet.get(id)[index];
+                    }
+
+                    double dis = distanceCost(candidateTuple.getContext(), old_tuple_part);
+                    if (dis == 0) {
+                        dis = MIN_DOUBLE;
+                    }
+                    prob = tmp_prob / dis;
                     fixTuple = candidateTuple;
+
+
                     System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");
                 }
             }
 
             //修改dataset中这一条的数据
             if (ischange) {
-
                 String[] ignoredValues = null;
                 if (ignoredIDs.size() > 0) {
                     ignoredValues = new String[ignoredIDs.size()];
@@ -1015,7 +1052,11 @@ public class Domain {
                     }
                 }
                 dataSet.put(id, newTupleContext);
-                System.out.println("ID = [" + id + "] fix Tuple = " + Arrays.toString(newTupleContext) + "\n");
+                //if (id == 902) {//test
+                System.out.println("ID = [" + id + "] fix Tuple = " + Arrays.toString(newTupleContext));
+                System.out.println("fix content = " + Arrays.toString(fixTuple.getContext()));
+                System.out.println("attribute id = " + Arrays.toString(fixTuple.AttributeIndex));
+                //}
             }
 
         }
@@ -1414,6 +1455,7 @@ public class Domain {
                 Entry entry = (Entry) iter.next();
                 Object key = entry.getKey();
                 Tuple value = (Tuple) entry.getValue();
+//                if ((Integer) key == 0)
                 System.out.println("key = " + key + " value = " + Arrays.toString(value.getContext()));
             }
         }
@@ -1439,6 +1481,14 @@ public class Domain {
     }
 
     public void printConflicts(ArrayList<Integer> conflicts) {
+        conflicts.sort(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                if (o1 < o2) {
+                    return -1;
+                } else return 1;
+            }
+        });
         System.out.print("Conflict ID: [");
         for (Integer id : conflicts) {
             System.out.print("" + id + " ");

@@ -1,22 +1,33 @@
 package util;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.*;
 import java.util.*;
 
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
-    public static String sourceFile = baseURL + "test/source.txt";
-    public static String trainFile = baseURL + "test/trainData.txt";
-    public static String testFile = baseURL + "test/testData.txt";
+    public static String sourceFile = baseURL + "HAI/HAI-1q-30%error.csv";
+    public static String trainFile = baseURL + "HAI/trainData.csv";
+    public static String testFile = baseURL + "HAI/testData.csv";
     public static HashMap<String, ArrayList<Integer>> dataMap = new HashMap<>();//存放对应这条String的所有元组ID
 
-    public static void run(String sourceFile, String trainFile, String testFile, int sampleNum, int[] ignoredIDs) {
+    class TmpTuple{
+        int tupleID;
+        String content;
+
+        TmpTuple(){}
+        TmpTuple(int tupleID, String content){
+            this.tupleID = tupleID;
+            this.content = content;
+        }
+    }
+
+    public void run(String sourceFile, String trainFile, String testFile, int sampleNum, int[] ignoredIDs) {
+
         //read data set from sourceFile
         FileReader reader;
         ArrayList<String> dataSet = new ArrayList<>();  //存放原始数据
-        ArrayList<String> trainData = new ArrayList<>();  //存放采样后的训练数据
-        ArrayList<String> testData = new ArrayList<>();  //存放采样后的测试数据
+        ArrayList<TmpTuple> trainData = new ArrayList<>();  //存放采样后的训练数据
+        ArrayList<TmpTuple> testData = new ArrayList<>();  //存放采样后的测试数据
         try {
             reader = new FileReader(sourceFile);
             BufferedReader br = new BufferedReader(reader);
@@ -83,7 +94,7 @@ public class Sampling {
                 bool[num] = true;
                 num++;
                 //寻找random result对应的tuple,并存入sampleData中
-                trainData.add(dataSet.get(random_result));
+                trainData.add(new TmpTuple(random_result, dataSet.get(random_result)));
                 i++;
             }
         }
@@ -97,19 +108,27 @@ public class Sampling {
                 }
             }
             if (!flag) {
-                testData.add(dataSet.get(i));
+                testData.add(new TmpTuple(i,dataSet.get(i)));
             }
         }
 
+        trainData.sort(new Comparator<TmpTuple>() {
+            @Override
+            public int compare(TmpTuple o1, TmpTuple o2) {
+                if(o1.tupleID>o2.tupleID){
+                    return 1;
+                }else return -1;
+            }
+        });
         writeToFile(trainData, trainFile);//采样得到训练集
 
         writeToFile(testData, testFile);//采样得到测试集
     }
 
     public static void main(String[] args) {
-        int sampleNum = 2000;
-        int[] ignoredIDs = {7};
-        run(sourceFile, trainFile, testFile, sampleNum, ignoredIDs);
+        int sampleNum = 500;
+        int[] ignoredIDs = {5};
+        new Sampling().run(sourceFile, trainFile, testFile, sampleNum, ignoredIDs);
     }
 
     public static int getRandomIndex(int size) {
@@ -143,7 +162,7 @@ public class Sampling {
         return list;
     }
 
-    public static void writeToFile(ArrayList<String> list, String url) {
+    public static void writeToFile(ArrayList<TmpTuple> list, String url) {
         File file = new File(url);
         FileWriter fw = null;
         BufferedWriter bw = null;
@@ -161,8 +180,8 @@ public class Sampling {
             }
             fw = new FileWriter(file);
             bw = new BufferedWriter(fw);
-            for (String tuple : list) {
-                bw.write(tuple);
+            for (TmpTuple tuple : list) {
+                bw.write((tuple.tupleID+1)+","+tuple.content);
                 bw.newLine();
             }
             bw.close();

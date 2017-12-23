@@ -17,8 +17,8 @@ public class Main {
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
     static ArrayList<Integer> ignoredIDs = null;
-    public static String rulesURL = baseURL + "/synthetic-car/rules-first-order.txt";
-    //public static String dataURL = baseURL + "/synthetic-car/synthetic-car-5q-10%-error.csv";
+    public static String rulesURL = baseURL + "/HAI/rules.txt";
+    //public static String dataURL = baseURL + "/HAI/HAI-5q-10%-error.csv";
 
 
 //    public static void updateprogMLN(String oldMLNfile, String dataFile){
@@ -26,7 +26,7 @@ public class Main {
 //        ArrayList<String> rules = new ArrayList<String>();
 //        ArrayList<String> newerRules = new ArrayList<String>();
 //        try {
-//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/synthetic-car/rules.txt");
+//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules.txt");
 //            BufferedReader br = new BufferedReader(reader);
 //            String line = null;
 //            while((line = br.readLine()) != null && line.length()!=0) {
@@ -130,7 +130,7 @@ public class Main {
 
         Rule rule = new Rule();
         //Domain domain = new Domain();
-        String evidence_outFile = baseURL + "/synthetic-car/evidence.db";
+        String evidence_outFile = baseURL + "/HAI/evidence.db";
 
         //System.out.println("rootURL=" + rootURL);
         cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";//存放清洗后的数据集
@@ -157,21 +157,21 @@ public class Main {
         //list.add(nopart_args);
         String mln_args = "-i";
         list.add(mln_args);
-        String mlnFileURL = baseURL + "/synthetic-car/prog-new.mln";//prog.mln
+        String mlnFileURL = baseURL + "/HAI/prog-new.mln";//prog.mln
         mlnFileURL = args.length > 0 ? args[1] : mlnFileURL;
         // 根据输入的参数来跑
         list.add(mlnFileURL);
         String evidence_args = "-e";
         list.add(evidence_args);
-        String evidenceFileURL = baseURL + "/synthetic-car/evidence.db"; //samples/smoke/
+        String evidenceFileURL = baseURL + "/HAI/evidence.db"; //samples/smoke/
         list.add(evidenceFileURL);
         String queryFile_args = "-queryFile";
         list.add(queryFile_args);
-        String queryFileURL = baseURL + "/synthetic-car/query.db";
+        String queryFileURL = baseURL + "/HAI/query.db";
         list.add(queryFileURL);
         String outFile_args = "-r";
         list.add(outFile_args);
-        String weightFileURL = baseURL + "/synthetic-car/out.txt";
+        String weightFileURL = baseURL + "/HAI/out.txt";
         weightFileURL = args.length > 0 ? args[2] : weightFileURL;
         list.add(weightFileURL);
         String noDropDB = "-keepData";
@@ -200,15 +200,16 @@ public class Main {
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
 
-            //updateprogMLN("/home/gcc/experiment/dataSet/synthetic-car/out.txt" , dataURL);
+            //updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
         }
     }
 
     public static HashMap<Integer, String[]> main(String[] args) throws SQLException, IOException {
 
         String dataURL = baseURL + "/" + args[0] + "/" + args[1];
-        setLineID(dataURL, dataURL.replaceAll(".csv", "-hasID.csv"));//给数据集标序号Tuple ID
-        String tmp_dataURL = dataURL.replaceAll(".csv", "-hasID.csv");
+//        setLineID(dataURL, dataURL.replaceAll(".csv", "-hasID.csv"));//给数据集标序号Tuple ID
+//        String tmp_dataURL = dataURL.replaceAll(".csv", "-hasID.csv");
+        String tmp_dataURL = dataURL;
         Rule rule = new Rule();
         Domain domain = new Domain();
 
@@ -220,8 +221,6 @@ public class Main {
         boolean ifHeader = true;
         List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL, splitString);
         rule.initData(tmp_dataURL, splitString, ifHeader);
-        //ArrayList<Tuple> newTupleList = rule.tupleList;
-        //dataSet是所有数据的集合，我要从里面拿出
         ignoredIDs = rule.findIgnoredTuples(rules);
         domain.header = rule.header;
         header = rule.header;
@@ -245,7 +244,7 @@ public class Main {
         * */
         //区域划分 形成Domains
         domain.init(tmp_dataURL, splitString, ifHeader, rules);
-        //domain.printDataSet(dataSet);
+//        domain.printDomainContent(domain.domains);
         //对每个Domain执行group by key操作
         domain.groupByKey(domain.domains, rules);
         //根据MLN的概率修正错误数据
@@ -279,8 +278,51 @@ public class Main {
         return domain.dataSet;
     }
 
+    public static void writeToFile( String[] header, ArrayList<String> list, String outFile){
+        File file = new File(outFile);
+        FileWriter fw = null;
+        BufferedWriter writer = null;
+        try {
+            if (file.exists()) {// 判断文件是否存在
+                System.out.println("文件已存在: " + outFile);
+            } else if (!file.getParentFile().exists()) {// 判断目标文件所在的目录是否存在
+                // 如果目标文件所在的文件夹不存在，则创建父文件夹
+                System.out.println("目标文件所在目录不存在，准备创建它！");
+                if (!file.getParentFile().mkdirs()) {// 判断创建目录是否成功
+                    System.out.println("创建目标文件所在的目录失败！");
+                }
+            } else {
+                file.createNewFile();
+            }
+            fw = new FileWriter(file);
+            writer = new BufferedWriter(fw);
+
+            writer.write("ID,"+Arrays.toString(header)
+                    .replaceAll("[\\[\\]]", "")
+                    .replaceAll(" ", ""));
+            writer.newLine();//换行
+
+            for(String str: list){
+                writer.write(str);
+                writer.newLine();
+            }
+            writer.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
 
     public static void writeToFile(String cleanedFileURL, HashMap<Integer, String[]> dataSet, String[] header) {
+
+        List<Map.Entry<Integer, String[]>> list = new ArrayList<>(dataSet.entrySet());
+
+        Collections.sort(list, new Comparator<Map.Entry<Integer, String[]>>() {
+            @Override
+            public int compare(Map.Entry<Integer, String[]> o1, Map.Entry<Integer, String[]> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+
         File file = new File(cleanedFileURL);
         FileWriter fw = null;
         BufferedWriter writer = null;
@@ -298,16 +340,20 @@ public class Main {
             }
             fw = new FileWriter(file);
             writer = new BufferedWriter(fw);
-            Iterator<Entry<Integer, String[]>> iter = dataSet.entrySet().iterator();
-            writer.write(Arrays.toString(header).replaceAll("[\\[\\]]", "").replaceAll("TupleID, ", "").replaceAll(" ", ""));
+
+
+            writer.write("ID,"+Arrays.toString(header)
+                    .replaceAll("[\\[\\]]", "")
+                    .replaceAll(" ", ""));
             writer.newLine();//换行
-            while (iter.hasNext()) {
-                Entry<Integer, String[]> entry = iter.next();
-                String line = Arrays.toString(entry.getValue()).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
-                writer.write(line);
+
+            for (Map.Entry<Integer, String[]> map : list) {
+                String line = Arrays.toString(map.getValue()).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
+                writer.write(map.getKey() + "," + line);
                 writer.newLine();//换行
             }
             writer.flush();
+            writer.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

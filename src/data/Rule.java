@@ -134,8 +134,100 @@ public class Rule {
     }
 
 
+    public static void partitionMLN(String file,ArrayList<String> rules, int partitionNum, String dataName) {
+        String fileURL = groundRules(file, rules);
+        /*
+        HashMap<String, String> map = combineRulesFile(clean_fileURL, dirty_fileURL, dataName);
+        String newcleanFile = cleanfile.replaceAll(".csv", "-hasID.csv");
+        Main.setLineID(cleanfile, newcleanFile);
+        */
+        HashMap<String, String> map = readFileToHash(fileURL);
+        ArrayList<String> tuples = readFileNoHeader(file);//list里包含ID
+        Iterator<Map.Entry<String, String>> iter = map.entrySet().iterator();
+
+
+        try {
+            // 分布式情况下n个节点
+            BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
+            BufferedWriter dataBw[] = new BufferedWriter[partitionNum];
+            HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
+            //初始化rule-new.txt和data-new.txt
+            for (int i = 0; i < partitionNum; i++) {
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                if (!rulesWriteFile.exists()) {
+                    rulesWriteFile.createNewFile();
+                }
+                if (!dataWriteFile.exists()) {
+                    dataWriteFile.createNewFile();
+                }
+                dataset[i] = new HashMap<>();
+
+                FileWriter fw1 = new FileWriter(rulesWriteFile);
+                rulesBw[i] = new BufferedWriter(fw1);
+                FileWriter fw2 = new FileWriter(dataWriteFile);
+                dataBw[i] = new BufferedWriter(fw2);
+                rulesBw[i].write("ProviderID(valueProviderID)\n" +
+                        "City(valueCity)\n" +
+                        "State(valueState)\n" +
+                        "ZIPCode(valueZIPCode)\n" +
+                        "PhoneNumber(valuePhoneNumber)\n" +
+                        "Score(valueScore)\n\n");
+                dataBw[i].write("ProviderID,City,State,ZIPCode,PhoneNumber,Score\n");
+            }
+
+            //写入rules-new.txt
+            int i = 0;
+            int number_i = 0;
+            int size = map.size();
+            int number = size / partitionNum;//每份的数据量
+
+            while (iter.hasNext()) {
+                if (number_i == number) {
+                    number_i = 0;
+                    if(i != partitionNum - 1 )
+                        i++;
+                }
+                Map.Entry<String, String> entry = iter.next();
+                String mln = entry.getKey();
+                String prob = entry.getValue();
+                String rule = mln.replaceAll("\\)v", ") v ");
+                rulesBw[i].write(prob + "\t" + rule + "\n");
+                ArrayList<String> result = findMatchedTuple(rule, tuples);
+                for (String tuple : result) {
+                    int index = tuple.indexOf(",");
+                    dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index+1));
+                }
+                number_i++;
+            }
+
+            for (int k = 0; k < partitionNum; k++) {
+                //根据ID排序
+                Collections.sort(new ArrayList<>(dataset[k].entrySet()), new Comparator<Map.Entry<Integer, String>>() {
+                    @Override
+                    public int compare(Map.Entry<Integer, String> o1, Map.Entry<Integer, String> o2) {
+                        return o1.getKey().compareTo(o2.getKey());
+                    }
+                });
+                Iterator<Map.Entry<Integer, String>> iterator = dataset[k].entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<Integer, String> entry = iterator.next();
+                    dataBw[k].write(entry.getValue() + "\n");
+                }
+            }
+
+            // 最后要关闭文件流
+            for (int k = 0; k < partitionNum; k++) {
+                dataBw[k].close();
+                rulesBw[k].close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
-     * 用clean data and dirty data生成MLN,
+     * Using clean data and dirty data to generate MLN,
      * partition MLN and clean data
      */
     public static void partitionMLN(String dirtyfile, String cleanfile, ArrayList<String> rules, int partitionNum, String dataName) {
