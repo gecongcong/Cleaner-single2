@@ -26,7 +26,7 @@ public class SpellChecker {
         }
     }
 
-    public static int getDistance(String A, String B) {
+    public static int distance(String A, String B) {
         if(A.equals(B)) {
             //System.out.println(0);
             return 0;
@@ -54,7 +54,7 @@ public class SpellChecker {
     public static void main(String args[]) {
         String A = "10001abc";
         String B = "10011ac";
-        SpellChecker.getDistance(A, B);
+        SpellChecker.distance(A, B);
 //        ArrayList<String> list = new ArrayList<String>();
 //        list.add("10001abc");
 //        list.add("10011ac");

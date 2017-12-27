@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public class ConvertRule {
 
     public static void main(String[] args) {
-        String sourceURL = "/home/gcc/experiment/dataSet/" + "synthetic-car/rules.txt";
-        String outURL = "/home/gcc/experiment/dataSet/" + "synthetic-car/rules-first-order.txt";
+        String sourceURL = "/home/gcc/experiment/dataSet/" + "HAI/rules.txt";
+        String outURL = "/home/gcc/experiment/dataSet/" + "HAI/rules-first-order.txt";
         convertToFirstOrder(sourceURL, outURL);
     }
 

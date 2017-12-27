@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import info.debatty.java.stringsimilarity.*;
 import javafx.scene.input.DataFormat;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import spellchecker.SpellChecker;
@@ -18,7 +19,7 @@ public class Domain {
 
     public static double MIN_DOUBLE = 0.0001;
 
-    public static int THRESHOLD = 8;
+    public static double THRESHOLD = 0.91;
 
     public HashMap<Integer, String[]> dataSet = new HashMap<>();
 
@@ -299,7 +300,7 @@ public class Domain {
                 Entry<Integer, Tuple> entry = iter.next();
                 int k = entry.getKey();
                 Tuple tuple1 = entry.getValue(); //一个 tuple
-                HashMap<Integer, Tuple> group = new HashMap<Integer, Tuple>();
+                HashMap<Integer, Tuple> group = new HashMap<>();
                 group.put(k, tuple1);    //add Ti to group(i), now G(i)={Ti}
                 String[] reason1 = tuple1.reason;
                 String[] content1 = tuple1.getContext();
@@ -330,7 +331,8 @@ public class Domain {
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
-                            if (Arrays.equals(reason1, reason2) || SpellChecker.getDistance(content1_str, content2_str) < THRESHOLD) {
+                            JaroWinkler jw = new JaroWinkler();
+                            if (Arrays.equals(reason1, reason2)) {// jw.similarity(content1_str, content2_str) > THRESHOLD
                                 group.put(m, tuple2);
                                 flags.add(m);
                             }
@@ -362,8 +364,6 @@ public class Domain {
             this.content = content;
             this.tupleID = tupleID;
         }
-
-        ;
     }
 
     public int replaceNCost(String B, ArrayList<Tuple2> list) { //replace A in list -> B cost N
@@ -385,14 +385,14 @@ public class Domain {
         } else {
             distance = 0;
             for (int i = 0; i < A.length; i++) {
-                distance += SpellChecker.getDistance(A[i], B[i]);
+                distance += SpellChecker.distance(A[i], B[i]);
             }
         }
 
         return distance;
     }
 
-    public HashMap<String, Candidate> spellCheck(HashMap<Integer, Tuple> group) {
+    public HashMap<String, Candidate> spellCheck(HashMap<Integer, Tuple> group) {//返回每个tuple被替换的最小cost
         //System.out.println("--------spellCheck-------");
 
         HashMap<String, Candidate> cMap = new HashMap<String, Candidate>();
@@ -416,19 +416,28 @@ public class Domain {
         for (int i = 0; i < tupleList.size(); i++) {
             Tuple2 t = tupleList.get(i);
             String tuple = t.content;
-            int dis = 1000;
-            String candidate = "";
+            double dis = 1000;
+            String candidate = tuple;
+            //找到该Tuple的最小distance\
             int tupleID = t.tupleID;
-            //找到该Tuple的最小distance
+
             for (int j = 0; j < tupleList.size(); j++) {
                 Tuple2 tuple2 = tupleList.get(j);
                 String tmp_candidate = tuple2.content;
                 //tupleID = tuple2.tupleID;
                 if (tuple.equals(tmp_candidate)) continue;
-                int distance = SpellChecker.getDistance(tuple, tmp_candidate);
+
+                MetricLCS lcs = new MetricLCS();
+                NormalizedLevenshtein l = new NormalizedLevenshtein();
+                JaroWinkler jw = new JaroWinkler();
+                Cosine cosine = new Cosine();
+                QGram qGram = new QGram();
+//                double distance = qGram.distance(tuple, tmp_candidate);
+                double distance = SpellChecker.distance(tuple, tmp_candidate);
                 int N = replaceNCost(tmp_candidate, tupleList);
-                int tmp_cost = distance * N;
+                double tmp_cost = distance * N;
                 if (tmp_cost < dis) {
+                    tupleID = tuple2.tupleID;
                     dis = tmp_cost;
                     candidate = tmp_candidate;
                     //tupleID = tupleList.get(j).tupleID;
@@ -457,7 +466,7 @@ public class Domain {
 
             for (int i = 0; i < groups.size(); i++) {
                 HashMap<Integer, Tuple> group = groups.get(i);
-                HashMap<Integer, Integer> weight = new HashMap<Integer, Integer>();
+                HashMap<Integer, Integer> weight = new HashMap<>();
 
                 HashMap<String, Candidate> cMap = spellCheck(group);
 
@@ -472,7 +481,6 @@ public class Domain {
                     while (iter.hasNext()) {
                         Entry<Integer, Tuple> current = iter.next();
                         Tuple tuple = current.getValue();
-
                         int length = tuple.getContext().length;
                         String[] tmp_context = new String[length];
                         System.arraycopy(tuple.getContext(), 0, tmp_context, 0, length);
@@ -483,17 +491,17 @@ public class Domain {
                         Candidate c = cMap.get(values);
                         String candidate = c.candidate;
                         if (prob == null) {
-                            prob = 0.0;    //说明这个团只在数据集里出现过一次，姑且认为该团不具代表性，概率置0
+                            prob = MIN_DOUBLE;    //说明这个团只在数据集里出现过一次，姑且认为该团不具代表性，概率置0
                         }
-                        double cost = 0.0f;
+                        double cost;
                         if (c.cost == 0) {
-                            cost = 1000;
+                            cost = MIN_DOUBLE;
                         } else
                             cost = prob * c.cost;
                         if (cost > pre_cost) {
                             pre_cost = cost;
-                            //tupleID = current.getKey();
-                            tupleID = c.tupleID;
+                            tupleID = tuple.tupleID;
+//                            tupleID = c.tupleID;
                         }
                     }
                     if (weight.get(tupleID) == null)
@@ -518,12 +526,13 @@ public class Domain {
                 Tuple cleanTuple = group.get(resultTupleID);
                 Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
                 //修正错误的值，即用正确的去替换它
-                if (cleanTuple != null)
+                if (cleanTuple != null) {
                     while (iter.hasNext()) {
                         Entry<Integer, Tuple> current = iter.next();
                         group.put(current.getKey(), cleanTuple);
                         domains.get(DGindex).put(current.getKey(), cleanTuple);
                     }
+                }
             }
             DGindex++;
         }
@@ -922,10 +931,6 @@ public class Domain {
                 ArrayList<String[]> tmp_list = new ArrayList<>();//记录该冲突元组修复方案中对每一个domain的选择
                 HashMap<Integer, Tuple> first_domain = domains.get(k);
 
-                if (id == 24) {
-                    System.out.println("debug here!");
-                }
-
                 Tuple ct = first_domain.get(id);
                 int tupleID = ct.tupleID;
                 tmp_list.add(ct.getContext());
@@ -1015,8 +1020,7 @@ public class Domain {
                     prob = tmp_prob / dis;
                     fixTuple = candidateTuple;
 
-
-                    System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");
+//                    System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");
                 }
             }
 
@@ -1052,11 +1056,9 @@ public class Domain {
                     }
                 }
                 dataSet.put(id, newTupleContext);
-                //if (id == 902) {//test
-                System.out.println("ID = [" + id + "] fix Tuple = " + Arrays.toString(newTupleContext));
-                System.out.println("fix content = " + Arrays.toString(fixTuple.getContext()));
-                System.out.println("attribute id = " + Arrays.toString(fixTuple.AttributeIndex));
-                //}
+//                System.out.println("ID = [" + id + "] fix Tuple = " + Arrays.toString(newTupleContext));
+//                System.out.println("fix content = " + Arrays.toString(fixTuple.getContext()));
+//                System.out.println("attribute id = " + Arrays.toString(fixTuple.AttributeIndex));
             }
 
         }
@@ -1258,21 +1260,20 @@ public class Domain {
 
 
     public List<List<Integer>> combineDomain(List<List<HashMap<Integer, Tuple>>> Domain_to_Groups) {
-
+        List<List<Integer>> keysList = null;
         //只有一个Domain，不需要合并
-        if (Domain_to_Groups.size() == 1) return null;
-        List<HashMap<Integer, Tuple>> pre_groups = Domain_to_Groups.get(0);
-        List<List<Integer>> keysList = new ArrayList<List<Integer>>(pre_groups.size());
+        if (Domain_to_Groups.size() > 1) {
+            List<HashMap<Integer, Tuple>> pre_groups = Domain_to_Groups.get(0);
+            keysList = new ArrayList<>(pre_groups.size());
+
+            int preDomainID = 0;
+            int curDomainID = 0;
 
 
-        int preDomainID = 0;
-        int curDomainID = 0;
-
-
-        //第一个Domain中所有group的keyList
-        //	for(HashMap<Integer, Tuple> group: pre_groups){
-        //		keysList.add(Arrays.asList(calculateKeys(group)));
-        //	}
+            //第一个Domain中所有group的keyList
+            //	for(HashMap<Integer, Tuple> group: pre_groups){
+            //		keysList.add(Arrays.asList(calculateKeys(group)));
+            //	}
 
 //		for(List<Integer> list :keysList){
 //			for(Integer output :list)
@@ -1280,37 +1281,39 @@ public class Domain {
 //				System.out.println();
 //		}
 
-        for (int i = 1; i < Domain_to_Groups.size(); i++) {
+            for (int i = 1; i < Domain_to_Groups.size(); i++) {
 
-            curDomainID = i;
-            List<HashMap<Integer, Tuple>> cur_groups = Domain_to_Groups.get(i);
-            int pre_groups_index = 0;
-            int pre_groups_size = pre_groups.size();
-            int cur_groups_index = 0;
-            int cur_groups_size = cur_groups.size();
-            List<HashMap<Integer, Tuple>> temp = new ArrayList<HashMap<Integer, Tuple>>();
-            while (pre_groups_index < pre_groups_size && cur_groups_index < cur_groups_size) {
-                HashMap<Integer, Tuple> cur_group = cur_groups.get(cur_groups_index);
-                HashMap<Integer, Tuple> pre_group = pre_groups.get(pre_groups_index);
-                //求两个group的交集
-                List<Integer> keyList = interset(calculateKeys(pre_group), calculateKeys(cur_group));
-                if (keyList.size() != 0) {
-                    pre_group = combineGroup(keyList, pre_group, cur_group, preDomainID, curDomainID);
-                    if (keyList.size() > 1) {
-                        keysList.add(keyList);
-                        temp.add(pre_group);
+                curDomainID = i;
+                List<HashMap<Integer, Tuple>> cur_groups = Domain_to_Groups.get(i);
+                int pre_groups_index = 0;
+                int pre_groups_size = pre_groups.size();
+                int cur_groups_index = 0;
+                int cur_groups_size = cur_groups.size();
+                List<HashMap<Integer, Tuple>> temp = new ArrayList<HashMap<Integer, Tuple>>();
+                while (pre_groups_index < pre_groups_size && cur_groups_index < cur_groups_size) {
+                    HashMap<Integer, Tuple> cur_group = cur_groups.get(cur_groups_index);
+                    HashMap<Integer, Tuple> pre_group = pre_groups.get(pre_groups_index);
+                    //求两个group的交集
+                    List<Integer> keyList = interset(calculateKeys(pre_group), calculateKeys(cur_group));
+                    if (keyList.size() != 0) {
+                        pre_group = combineGroup(keyList, pre_group, cur_group, preDomainID, curDomainID);
+                        if (keyList.size() > 1) {
+                            keysList.add(keyList);
+                            temp.add(pre_group);
+                        }
+                    }
+                    cur_groups_index++;// 如果当前group与前一个 domain 的group没有交集，那么进行下一个group的匹配
+                    //如果当前domain 已经没有 可以用来 匹配的 group 的话 ，那么 就匹配前一个 domain 中的下一个group
+                    if (cur_groups_index == cur_groups_size) {
+                        cur_groups_index = 0;
+                        pre_groups_index++;
                     }
                 }
-                cur_groups_index++;// 如果当前group与前一个 domain 的group没有交集，那么进行下一个group的匹配
-                //如果当前domain 已经没有 可以用来 匹配的 group 的话 ，那么 就匹配前一个 domain 中的下一个group
-                if (cur_groups_index == cur_groups_size) {
-                    cur_groups_index = 0;
-                    pre_groups_index++;
-                }
+                pre_groups = temp;
+                preDomainID = i;
             }
-            pre_groups = temp;
-            preDomainID = i;
         }
+
 
         //===========test==========
 //		int d_index = 0;
@@ -1322,7 +1325,12 @@ public class Domain {
 
 
         System.out.println(">>> Fix the error values...");
+        int i = 0;
         for (List<HashMap<Integer, Tuple>> groups : Domain_to_Groups) {
+            i++;
+            if (i == 9) {
+                System.out.println("debug here");
+            }
             for (HashMap<Integer, Tuple> group : groups) {
                 Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
                 //修正错误的值，即用正确的去替换它
@@ -1330,7 +1338,6 @@ public class Domain {
                     Entry<Integer, Tuple> entry = iter.next();
                     int currentKey = entry.getKey();
                     Tuple cleanTuple = entry.getValue();
-
                     int[] AttrIDs = cleanTuple.getAttributeIndex();
                     String[] values = cleanTuple.getContext();
                     //   String[] tuple = null;
@@ -1444,7 +1451,7 @@ public class Domain {
     /**
      * 打印划分后的所有Group
      */
-    public void printGroup(List<HashMap<Integer, Tuple>> groups) {
+    public static void printGroup(List<HashMap<Integer, Tuple>> groups) {
         HashMap<Integer, Tuple> group = null;
         for (int i = 0; i < groups.size(); i++) {
             group = groups.get(i);

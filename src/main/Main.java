@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 
 public class Main {
     static String[] header = null;
-    static String baseURL = "/home/gcc/experiment/dataSet";    // experiment baseURL
+    static String baseURL = "/home/zju/experiment/dataSet";    // experiment baseURL
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
     static ArrayList<Integer> ignoredIDs = null;
@@ -26,7 +26,7 @@ public class Main {
 //        ArrayList<String> rules = new ArrayList<String>();
 //        ArrayList<String> newerRules = new ArrayList<String>();
 //        try {
-//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules.txt");
+//            FileReader reader = new FileReader("/home/zju/experiment/dataSet/HAI/rules.txt");
 //            BufferedReader br = new BufferedReader(reader);
 //            String line = null;
 //            while((line = br.readLine()) != null && line.length()!=0) {
@@ -200,7 +200,7 @@ public class Main {
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
 
-            //updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
+            //updateprogMLN("/home/zju/experiment/dataSet/HAI/out.txt" , dataURL);
         }
     }
 
@@ -244,13 +244,17 @@ public class Main {
         * */
         //区域划分 形成Domains
         domain.init(tmp_dataURL, splitString, ifHeader, rules);
-//        domain.printDomainContent(domain.domains);
+
+        //domain.printDomainContent(domain.domains);
+
         //对每个Domain执行group by key操作
         domain.groupByKey(domain.domains, rules);
+
         //根据MLN的概率修正错误数据
         domain.correctByMLN(domain.Domain_to_Groups, attributesPROBList, domain.header, domain.domains);
+
         //打印修正后的Domain
-        //domain.printDomainContent(domain.domains);
+//        domain.printDomainContent(domain.domains);
 
         System.out.println(">>> Combine Domains...");
         List<List<Integer>> keysList = domain.combineDomain(domain.Domain_to_Groups);    //返回所有重复数组的tupleID,并记录重复元组

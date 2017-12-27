@@ -5,10 +5,10 @@ package data;
  */
 public class Candidate {
     public String candidate = "";
-    public int cost = 9999;
+    public double cost = 9999;
     public int tupleID = -1;
 
-    public Candidate(int tupleID,String candidate,int cost){
+    public Candidate(int tupleID,String candidate,double cost){
         this.candidate = candidate;
         this.cost = cost;
         this.tupleID = tupleID;

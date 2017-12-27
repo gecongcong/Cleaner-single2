@@ -1,6 +1,5 @@
 package main;
 
-import com.sun.xml.internal.ws.util.QNameMap;
 import data.Domain;
 import data.GroundRule;
 import data.Rule;
@@ -13,7 +12,7 @@ import static main.Main.cleanedFileURL;
 import static main.Main.setLineID;
 
 /**
- * Created by gcc on 17-7-25.
+ * Created by zju on 17-7-25.
  */
 public class Test {
 
@@ -102,7 +101,7 @@ public class Test {
             mapList.add(map);
         }
         HashMap<String, Double> avgMAP = new HashMap<>(mapList.get(0).size());
-        for(int k=0;k<mapList.size();k++){
+        for (int k = 0; k < mapList.size(); k++) {
             HashMap<String, GroundRule> map = mapList.get(k);
 
             Iterator<Map.Entry<String, GroundRule>> iter = map.entrySet().iterator();
@@ -117,7 +116,7 @@ public class Test {
                 } else {
                     int count = num;
                     double avgPROG = prob * num;
-                    for (int i = k+1; i < mapList.size(); i++) {
+                    for (int i = k + 1; i < mapList.size(); i++) {
                         GroundRule gr2 = mapList.get(i).get(clause);
 
                         if (gr2 != null) {
@@ -133,7 +132,6 @@ public class Test {
                 }
             }
         }
-
 
 
         //write updated clauses to file
@@ -192,7 +190,7 @@ public class Test {
         while (iter.hasNext()) {
             Map.Entry<Integer, String[]> entry = iter.next();
             int tupleID = entry.getKey();
-            sample_ground_data.add(ground_data.get(tupleID-1));
+            sample_ground_data.add(ground_data.get(tupleID - 1));
         }
         return sample_ground_data;
     }
@@ -219,7 +217,7 @@ public class Test {
             if (!current_ground.equals(current_dirty)) {
                 total_error_num++;
                 if (!current_clean.equals(current_ground)) {
-                    System.err.print((i+2)+" ");  //no cleaned tuple:
+                    System.err.print((i + 2) + " ");  //no cleaned tuple:
 //                    System.out.println("current_ground = " + current_ground);
 //                    System.out.println("current_dirty = " + current_dirty);
 //                    System.out.println("current_clean = " + current_clean);
@@ -243,6 +241,7 @@ public class Test {
         precision = (double) correct_update_num / total_update_num;
         System.out.println("\nRecall = " + recall);
         System.out.println("\nPrecision = " + precision);
+        System.out.println("\nF1 = " + 2 * (precision * recall) / (precision + recall));
     }
 
     /**
@@ -352,7 +351,7 @@ public class Test {
         FileReader reader;
         try {
             //Read first-order-logic rules from file
-            reader = new FileReader("/home/gcc/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
+            reader = new FileReader("/home/zju/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
             BufferedReader br = new BufferedReader(reader);
 
             String line = null;
@@ -360,10 +359,11 @@ public class Test {
                 rules.add(line);
             }
             br.close();
-            /*Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
-                    "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
+            /*Rule.partitionMLN("/home/zju/experiment/dataSet/" + args[0] + "/" + args[2],
+                    "/home/zju/experiment/dataSet/" + args[0] + "/" + args[1],
                     rules, partitionNum, args[0]);*/
-            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
+            System.out.println("Begin Partition MLNs into '" + partitionNum + "' parts.");
+            Rule.partitionMLN("/home/zju/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
 
             ArrayList<String> newMLNs = new ArrayList<>();
             ArrayList<String> dataURLs = new ArrayList<>();
@@ -372,23 +372,23 @@ public class Test {
             double startTime = System.currentTimeMillis();    //获取开始时间
             for (int i = 0; i < partitionNum; i++) {
                 System.out.println("************ PARTITION" + i + " ************");
-                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new" + i + ".txt";
-                String dataWriteFile = "/home/gcc/experiment/dataSet/HAI/data-new" + i + ".txt";
-                String outFile = "/home/gcc/experiment/dataSet/HAI/out-" + i + ".txt";
+                String rulesWriteFile = "/home/zju/experiment/dataSet/HAI/rules-new" + i + ".txt";
+                String dataWriteFile = "/home/zju/experiment/dataSet/HAI/data-new" + i + ".txt";
+                String outFile = "/home/zju/experiment/dataSet/HAI/out-" + i + ".txt";
                 String mlnArgs[] = {dataWriteFile, rulesWriteFile, outFile};
-                //Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
 
-            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/HAI/out.txt");
+            normalizationMLN(newMLNs, dataURLs, "/home/zju/experiment/dataSet/HAI/out.txt");
             //清洗阶段
             String mlnArgs[] = {args[0], args[2]};
             HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
 //            for(int i = 0; i < partitionNum; i++) {
-//                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new"+i+".txt";
-//                String dataWriteFile = "/hom e/gcc/experiment/dataSet/HAI/data-new"+i+".txt";
+//                String rulesWriteFile = "/home/zju/experiment/dataSet/HAI/rules-new"+i+".txt";
+//                String dataWriteFile = "/hom e/zju/experiment/dataSet/HAI/data-new"+i+".txt";
 //                String mlnArgs[] = {dataWriteFile, rulesWriteFile, args[2]};
 //                HashMap<Integer,String[]> dataSet = Main.main(mlnArgs);
 //                dataSetList.add(dataSet);
@@ -411,8 +411,8 @@ public class Test {
             double totalTime = (endTime - startTime) / 1000;
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
-            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q.csv","/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q-hasID.csv");
-            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-1q-hasID.csv");
+            setLineID("/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI.csv", "/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
             ground_data.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {
@@ -427,14 +427,14 @@ public class Test {
                     }
                 }
             });
-            Main.writeToFile(Domain.header, ground_data, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
+            Main.writeToFile(Domain.header, ground_data, "/home/zju/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
 
-            evaluate(ground_data, cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
-            /*evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
-                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);*/
+            evaluate(ground_data, cleanedFileURL, "/home/zju/experiment/dataSet/" + args[0] + "/" + args[2]);
+            /*evaluate("/home/zju/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
+                     "/home/zju/experiment/dataSet/" + args[0] + "/" + args[2]);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //Main.updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
+        //Main.updateprogMLN("/home/zju/experiment/dataSet/HAI/out.txt" , "/home/zju/experiment/dataSet/HAI/HAI-1q-test.txt");
     }
 }

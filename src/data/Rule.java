@@ -145,7 +145,6 @@ public class Rule {
         ArrayList<String> tuples = readFileNoHeader(file);//list里包含ID
         Iterator<Map.Entry<String, String>> iter = map.entrySet().iterator();
 
-
         try {
             // 分布式情况下n个节点
             BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
@@ -153,8 +152,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -185,8 +184,9 @@ public class Rule {
             while (iter.hasNext()) {
                 if (number_i == number) {
                     number_i = 0;
-                    if(i != partitionNum - 1 )
+                    if(i != partitionNum - 1 ) {
                         i++;
+                    }
                 }
                 Map.Entry<String, String> entry = iter.next();
                 String mln = entry.getKey();
@@ -214,11 +214,12 @@ public class Rule {
                     Map.Entry<Integer, String> entry = iterator.next();
                     dataBw[k].write(entry.getValue() + "\n");
                 }
+                dataBw[k].close();
             }
 
             // 最后要关闭文件流
             for (int k = 0; k < partitionNum; k++) {
-                dataBw[k].close();
+//                dataBw[k].close();
                 rulesBw[k].close();
             }
         } catch (Exception e) {
@@ -247,8 +248,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -399,7 +400,7 @@ public class Rule {
         //Write combined rules to a new File
         Iterator<Map.Entry<String, String>> iter = clean_map.entrySet().iterator();
         try {
-            String writeFile = "/home/gcc/experiment/dataSet/" + dataName + "/groundRules.txt";
+            String writeFile = "/home/zju/experiment/dataSet/" + dataName + "/groundRules.txt";
             File writefile = new File(writeFile);
             FileWriter fw = new FileWriter(writefile);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -489,8 +490,8 @@ public class Rule {
             BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
             BufferedWriter dataBw[] = new BufferedWriter[partitionNum];
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
