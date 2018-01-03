@@ -1,6 +1,8 @@
 package util;
 
 
+import main.Main;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -9,9 +11,12 @@ import java.util.*;
  * Created by gcc on 17-9-27.
  */
 public class AddErrorToData {
+    public static String fileURL = "/home/gcc/experiment/dataSet/synthetic-car/ground_truth-1q-hasID.csv";
+    public static String outURL = "/home/gcc/experiment/dataSet/synthetic-car/fulldb-1q-hasID-10%error.csv";
     public static HashMap<Integer, String[]> dataSet = new HashMap<>();
     public static ArrayList<HashMap<String, Integer>> groupByValue = new ArrayList<>();
-    public static float errorRate = 0.10f;
+    public static float errorRate = 0.05f;
+    public static int discardNum = 2;   //丢弃的字符数量
     static String[] header = null;
 
     class Data {
@@ -24,9 +29,7 @@ public class AddErrorToData {
         }
     }
 
-    public void run() {
-        String fileURL = "/home/gcc/experiment/dataSet/HAI/HAI-100q-tail10q.csv";
-        String outURL = "/home/gcc/experiment/dataSet/HAI/HAI-100q-tail10q-10%error.csv";
+    public void run() {//添加error: 替换值
         FileReader reader;
         try {
             reader = new FileReader(fileURL);
@@ -94,8 +97,17 @@ public class AddErrorToData {
                 String[] currTuple = dataSet.get(errorKeyList.get(i));
                 String value = currTuple[1];
                 System.out.print("change value : " + value);
-
-                while (true) {
+                Random rand = new Random();
+                int randomNum = random.nextInt(discardNum);
+                String newValue;
+                if (value.length() > randomNum) {
+                    newValue = value.substring(0, value.length() - randomNum);
+                } else {
+                    newValue = value.substring(0, randomNum - value.length());
+                }
+                currTuple[1] = newValue;
+                System.out.print(" -> " + newValue + "\n");
+                /*while (true) {
                     String[] keys = groupByValue.get(1).keySet().toArray(new String[0]);
                     Random rand = new Random();
                     String randKey = keys[random.nextInt(keys.length)];
@@ -104,43 +116,25 @@ public class AddErrorToData {
                         System.out.print(" -> " + randKey + "\n");
                         break;
                     }
-                }
+                }*/
             }
 
             for (int i = 0; i < errorKeyList.size(); i++) {
                 String[] currTuple = dataSet.get(errorKeyList.get(i));
-                String value = currTuple[3];
+                String value = currTuple[2];
                 System.out.print("change value : " + value);
 
                 while (true) {
-                    String[] keys = groupByValue.get(3).keySet().toArray(new String[0]);
+                    String[] keys = groupByValue.get(2).keySet().toArray(new String[0]);
                     Random rand = new Random();
                     String randKey = keys[random.nextInt(keys.length)];
                     if (!randKey.equals(value)) {
-                        currTuple[3] = randKey;
+                        currTuple[2] = randKey;
                         System.out.print(" -> " + randKey + "\n");
                         break;
                     }
                 }
             }
-
-            for (int i = 0; i < errorKeyList.size(); i++) {
-                String[] currTuple = dataSet.get(errorKeyList.get(i));
-                String value = currTuple[4];
-                System.out.print("change value : " + value);
-
-                while (true) {
-                    String[] keys = groupByValue.get(4).keySet().toArray(new String[0]);
-                    Random rand = new Random();
-                    String randKey = keys[random.nextInt(keys.length)];
-                    if (!randKey.equals(value)) {
-                        currTuple[4] = randKey;
-                        System.out.print(" -> " + randKey + "\n");
-                        break;
-                    }
-                }
-            }
-
 
             //sort dataSet by TupleID
             Iterator<Map.Entry<Integer, String[]>> iter = dataSet.entrySet().iterator();
@@ -175,7 +169,8 @@ public class AddErrorToData {
 
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
+//        Main.setLineID(fileURL,outURL);
         new AddErrorToData().run();
     }
 
@@ -201,7 +196,7 @@ public class AddErrorToData {
             writer.write("ID," + Arrays.toString(header).replaceAll("[\\[\\]]", "").replaceAll(" ", ""));
             writer.newLine();//换行
             for (int i = 0; i < dataList.size(); i++) {
-               Data data = dataList.get(i);
+                Data data = dataList.get(i);
                 String line = data.id + "," + data.content;
                 writer.write(line);
                 writer.newLine();//换行

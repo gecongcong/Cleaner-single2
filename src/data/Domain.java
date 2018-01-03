@@ -18,8 +18,11 @@ import spellchecker.SpellChecker;
 public class Domain {
 
     public static double MIN_DOUBLE = 0.0001;
+    public static double MAX_DOUBLE = 9999;
 
     public static double THRESHOLD = 0.91;
+
+    public static int AVGNum = 2;
 
     public HashMap<Integer, String[]> dataSet = new HashMap<>();
 
@@ -279,22 +282,20 @@ public class Domain {
     /**
      * 二次划分，根据reason predicates 建立索引
      */
-
-
-    public void groupByKey(List<HashMap<Integer, Tuple>> domains, List<Tuple> rules) {
+    public List<List<Tuple>> groupByKey(List<HashMap<Integer, Tuple>> domains, List<Tuple> rules) {
 
         HashMap<Integer, Tuple> domain = null;
         int size = domains.size();
         Domain_to_Groups = new ArrayList<>(size);
-
+        List<List<Tuple>> domain_outlier = new ArrayList<>();
         for (int i = 0; i < size; i++) {
 
             domain = domains.get(i); // 一个
             int domain_size = domain.size(); //元组对数
             HashSet<Integer> flags = new HashSet<>();
 
-            List<HashMap<Integer, Tuple>> groups = new ArrayList<HashMap<Integer, Tuple>>();
-
+            List<HashMap<Integer, Tuple>> groups = new ArrayList<>();
+            List<Tuple> outlierTuple = new ArrayList<>();
             Iterator<Entry<Integer, Tuple>> iter = domain.entrySet().iterator();
             while (iter.hasNext()) {
                 Entry<Integer, Tuple> entry = iter.next();
@@ -318,12 +319,7 @@ public class Domain {
                             Tuple tuple2 = entry2.getValue();
                             String[] content2 = tuple2.getContext();
                             String[] reason2 = tuple2.reason;
-
-                            /*if (Arrays.equals(reason1, reason2)) {//equal改为similarity
-                                group.put(m, tuple2);
-                                flags.add(m);
-                            }*/
-                            String content1_str = Arrays.toString(content1)
+                            /*String content1_str = Arrays.toString(content1)
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
@@ -331,21 +327,29 @@ public class Domain {
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
-                            JaroWinkler jw = new JaroWinkler();
+                            JaroWinkler jw = new JaroWinkler();*/
                             if (Arrays.equals(reason1, reason2)) {// jw.similarity(content1_str, content2_str) > THRESHOLD
                                 group.put(m, tuple2);
                                 flags.add(m);
                             }
                         }
                     }
-                    if (group.size() > 1) {
+                    if (group.size() > AVGNum) {
                         groups.add(group);
+                    } else {
+                        Iterator<Entry<Integer, Tuple>> iterator = group.entrySet().iterator();
+                        while (iterator.hasNext()) {
+                            Entry<Integer, Tuple> entry1 = iterator.next();
+                            Tuple t = entry1.getValue();
+                            outlierTuple.add(t);
+                        }
                     }
                 }
             }
             if (groups.size() > 0) {
                 Domain_to_Groups.add(groups);
             }
+            domain_outlier.add(outlierTuple);
         }
 
         int d_index = 0;
@@ -354,7 +358,166 @@ public class Domain {
             printGroup(d);
         }
 
+        return domain_outlier;
     }
+
+    public void smoothOutlierToGroup(List<List<Tuple>> domain_outlier, List<List<HashMap<Integer, Tuple>>> Domain_to_Groups,
+                                     HashMap<Integer, String[]> dataSet, List<HashMap<String, Double>> attributesPROBList) {
+
+        //HashMap<String, Double> attributesPROB = attributesPROBList.get(0);
+        int top_k = 4;
+
+        //convert domain_outlier(List) to HashSet
+        HashSet<Integer> hashSet = new HashSet<>();
+        for (List<Tuple> tuples : domain_outlier) {
+            for (Tuple t : tuples) {
+                hashSet.add(t.tupleID);
+            }
+        }
+
+        //compute tuple minDistance
+        for (int i = 0; i < Domain_to_Groups.size(); i++) {
+            List<HashMap<Integer, Tuple>> groupList = Domain_to_Groups.get(i);
+            List<Tuple> outliers = domain_outlier.get(i);
+
+            for (Tuple outlierT : outliers) {
+                String[] out_content = dataSet.get(outlierT.tupleID);
+                /*String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
+                        .replaceAll("\\[", "")
+                        .replaceAll("]", "")
+                        .replaceAll(" ", "");*/
+                double minDis = MAX_DOUBLE;
+                int minID = 0;
+                int mingi = -1;
+
+                if (outlierT.tupleID == 1032) {
+                    System.out.println();
+                }
+
+                class DistanceInfo {
+                    int tupleID;
+                    double distance;
+
+                    DistanceInfo(int tupleID, double distance) {
+                        this.tupleID = tupleID;
+                        this.distance = distance;
+                    }
+                }
+                ArrayList<DistanceInfo> disList = new ArrayList<>();
+
+                Iterator<Entry<Integer, String[]>> iter = dataSet.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Entry<Integer, String[]> entry = iter.next();
+                    int key = entry.getKey();
+                    if (hashSet.contains(key)) continue;
+                    /*Double prob = null;
+                    for (int j = 0; j < groupList.size(); j++) { //计算curr_content的PROB
+                        HashMap<Integer, Tuple> group = groupList.get(j);
+                        if (group.containsKey(key)) {
+                            Tuple tuple = group.get(key);
+                            String[] content = tuple.getContext();
+                            String[] tmp_context = new String[content.length];
+                            System.arraycopy(tuple.getContext(), 0, tmp_context, 0, content.length);
+                            Arrays.sort(tmp_context);
+                            String values = Arrays.toString(tmp_context);
+                            prob = attributesPROB.get(values);
+                            if (null == prob) {
+                                prob = MIN_DOUBLE;
+                            }
+                            break;
+                        }
+                    }*/
+                    String[] curr_content = entry.getValue();
+                   /* String curr_content = Arrays.toString(entry.getValue())
+                            .replaceAll("\\[", "")
+                            .replaceAll("]", "")
+                            .replaceAll(" ", "");*/
+
+
+                    Cosine cosine = new Cosine();
+                    /*JaroWinkler jw = new JaroWinkler();
+                    NormalizedLevenshtein nll =new NormalizedLevenshtein();
+                    MetricLCS lcs = new MetricLCS();*/
+                    double t_dis = 0;
+                    for (int j = 0; j < out_content.length; j++) {
+                        if (!out_content[j].equals(curr_content[j])) {
+                            t_dis += cosine.distance(out_content[j], curr_content[j]);
+                        }
+                    }
+//                    t_dis = jw.distance(out_content, curr_content);
+                    disList.add(new DistanceInfo(key, t_dis));
+                }
+
+                disList.sort(new Comparator<DistanceInfo>() {
+                    @Override
+                    public int compare(DistanceInfo o1, DistanceInfo o2) {
+                        if (o1.distance > o2.distance) {
+                            return 1;
+                        } else if(o1.distance == o2.distance){
+                            return 0;
+                        }else{
+                            return -1;
+                        }
+                    }
+                });
+                int n = top_k;
+                int size = disList.size();
+                if (size < top_k) {
+                    n = size;
+                }
+
+                List<HashMap<String, Integer>> reverse_group_list = new ArrayList<>(groupList.size());
+                for (int gi = 0; gi < groupList.size(); gi++) {
+                    HashMap<Integer, Tuple> group = groupList.get(gi);
+                    HashMap<String, Integer> reverse_group = new HashMap<>();
+                    Iterator<Entry<Integer, Tuple>> it = group.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Entry<Integer, Tuple> entry = it.next();
+                        String content = Arrays.toString(entry.getValue().getContext())
+                                .replaceAll("\\[", "")
+                                .replaceAll("]", "")
+                                .replaceAll(" ", "");
+                        if (null == reverse_group.get(content)) {
+                            reverse_group.put(content, 1);
+                        } else {
+                            reverse_group.put(content, reverse_group.get(content) + 1);
+                        }
+                    }
+                    reverse_group_list.add(reverse_group);
+
+                }
+                double minCOST = MAX_DOUBLE;
+                for (int k = 0; k < n; k++) {
+                    DistanceInfo disInfo = disList.get(k);
+                    double dis = disInfo.distance;
+                    int tupleID = disInfo.tupleID;
+                    int gi = 0;
+                    double t_cost = 0;
+                    for (; gi < groupList.size(); gi++) {
+                        HashMap<Integer, Tuple> group = groupList.get(gi);
+                        if (group.containsKey(tupleID)) {
+                            String content = Arrays.toString(group.get(tupleID).getContext())
+                                    .replaceAll("\\[", "")
+                                    .replaceAll("]", "")
+                                    .replaceAll(" ", "");
+                            int num = reverse_group_list.get(gi).get(content);
+                            t_cost = dis / num;
+                            break;
+                        }
+                    }
+                    if (t_cost < minCOST) {
+                        minCOST = t_cost;
+                        minID = tupleID;
+                        mingi = gi;
+                    }
+                }
+
+                if (mingi != -1)
+                    groupList.get(mingi).put(outlierT.tupleID, outlierT);//把outlierT加到最相似的group中
+            }
+        }
+    }
+
 
     class Tuple2 {
         String content;
@@ -385,7 +548,8 @@ public class Domain {
         } else {
             distance = 0;
             for (int i = 0; i < A.length; i++) {
-                distance += SpellChecker.distance(A[i], B[i]);
+                QGram qGram = new QGram();
+                distance += qGram.distance(A[i], B[i]);
             }
         }
 
@@ -926,6 +1090,7 @@ public class Domain {
             double prob = -1;
             Tuple fixTuple = new Tuple();
             boolean ischange = false;
+
             for (int k = 0; k < domains.size(); k++) {
                 Tuple candidateTuple = new Tuple();
                 ArrayList<String[]> tmp_list = new ArrayList<>();//记录该冲突元组修复方案中对每一个domain的选择
@@ -933,6 +1098,7 @@ public class Domain {
 
                 Tuple ct = first_domain.get(id);
                 int tupleID = ct.tupleID;
+
                 tmp_list.add(ct.getContext());
 
                 if (null != ct) {
@@ -947,12 +1113,12 @@ public class Domain {
                         int[] sameID = findSameID(firstTuple.AttributeIndex, combinedTuple.AttributeIndex);//排序过
                         if (sameID[0] != -1) {//说明有交集的属性
                             Iterator<Entry<Integer, Tuple>> iter = domain.entrySet().iterator();
-                            double maxProb = 0.000001;
+                            double maxProb = MIN_DOUBLE;
                             Tuple maxTuple = null;
                             while (iter.hasNext()) {
                                 Entry<Integer, Tuple> en = iter.next();
                                 Tuple t = en.getValue();
-                                if (ifContains(sameID, t.AttributeIndex) && ifSameValue(sameID, t, ct)) { //说明属性值也相同
+                                if (ifContains(sameID, t.AttributeIndex) && ifSameValue(sameID, t, combinedTuple)) { //说明属性值也相同
 
                                     String[] tmp_context = new String[t.getContext().length];
                                     System.arraycopy(t.getContext(), 0, tmp_context, 0, t.getContext().length);
@@ -964,6 +1130,7 @@ public class Domain {
                                         curr_prob = MIN_DOUBLE;
                                     }
                                     if (curr_prob > maxProb) {
+                                        maxProb = curr_prob;
                                         maxTuple = t;
                                     }
                                     /*System.err.println("3.current maxTuple = " + Arrays.toString(maxTuple.TupleContext));
@@ -976,6 +1143,8 @@ public class Domain {
 
                                 /*System.err.println("3.combinedTuple = " + Arrays.toString(combinedTuple.TupleContext));
                                 System.err.println("attribute id = " + Arrays.toString(combinedTuple.AttributeIndex));*/
+                            } else {
+//                                System.out.println("debug here");
                             }
                         } else {//没有交集，直接合并
                             Tuple t = domain.get(tupleID);
@@ -1004,20 +1173,20 @@ public class Domain {
                     }
                     tmp_prob *= curr_prob;
                 }
+                String[] old_tuple_part = new String[candidateTuple.AttributeIndex.length];
+                for (int i = 0; i < candidateTuple.AttributeIndex.length; i++) {
+                    int index = candidateTuple.AttributeIndex[i];
+                    old_tuple_part[i] = dataSet.get(id)[index];
+                }
+                double dis = distanceCost(candidateTuple.getContext(), old_tuple_part);
+                if (dis == 0) {
+                    dis = MIN_DOUBLE;
+                }
+                tmp_prob /= dis;
                 if (tmp_prob > prob) {
                     ischange = true;
 
-                    String[] old_tuple_part = new String[candidateTuple.AttributeIndex.length];
-                    for (int i = 0; i < candidateTuple.AttributeIndex.length; i++) {
-                        int index = candidateTuple.AttributeIndex[i];
-                        old_tuple_part[i] = dataSet.get(id)[index];
-                    }
-
-                    double dis = distanceCost(candidateTuple.getContext(), old_tuple_part);
-                    if (dis == 0) {
-                        dis = MIN_DOUBLE;
-                    }
-                    prob = tmp_prob / dis;
+                    prob = tmp_prob;
                     fixTuple = candidateTuple;
 
 //                    System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");

@@ -152,8 +152,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -166,13 +166,15 @@ public class Rule {
                 rulesBw[i] = new BufferedWriter(fw1);
                 FileWriter fw2 = new FileWriter(dataWriteFile);
                 dataBw[i] = new BufferedWriter(fw2);
-                rulesBw[i].write("ProviderID(valueProviderID)\n" +
-                        "City(valueCity)\n" +
-                        "State(valueState)\n" +
-                        "ZIPCode(valueZIPCode)\n" +
-                        "PhoneNumber(valuePhoneNumber)\n" +
-                        "Score(valueScore)\n\n");
-                dataBw[i].write("ProviderID,City,State,ZIPCode,PhoneNumber,Score\n");
+                rulesBw[i].write("model(valuemodel)\n" +
+                        "make(valuemake)\n" +
+                        "type(valuetype)\n" +
+                        "year(valueyear)\n" +
+                        "condition(valuecondition)\n" +
+                        "wheelDrive(valuewheelDrive)\n" +
+                        "doors(valuedoors)\n" +
+                        "engine(valueengine)\n\n");
+                dataBw[i].write("model,make,type,year,condition,wheelDrive,doors,engine\n");
             }
 
             //写入rules-new.txt
@@ -248,8 +250,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -400,7 +402,7 @@ public class Rule {
         //Write combined rules to a new File
         Iterator<Map.Entry<String, String>> iter = clean_map.entrySet().iterator();
         try {
-            String writeFile = "/home/zju/experiment/dataSet/" + dataName + "/groundRules.txt";
+            String writeFile = "/home/gcc/experiment/dataSet/" + dataName + "/groundRules.txt";
             File writefile = new File(writeFile);
             FileWriter fw = new FileWriter(writefile);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -490,8 +492,8 @@ public class Rule {
             BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
             BufferedWriter dataBw[] = new BufferedWriter[partitionNum];
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -946,8 +948,8 @@ public class Rule {
             fw.close();
 
             while ((str = br.readLine()) != null && str.length() != 0) {
-                firstOrderLogic = "1\t";//add闁靛棴鎷穌efault weight 婵烇綀顕ф慨鐐搭渶濡鍚囬柡澶婂暣閸ｇeight=1
-                String[] line = str.split("=>");//闁告帒妫旂拹鐔煎灳濡搫鏂ч柛銉у灅eason闁炽儲鐟ラ幏浼村灳濡偐娉㈤柡瀣esult闁炽儲鐟ょ悮杈ㄧ▔椤忓牆鍔ラ柛鎺炴嫹
+                firstOrderLogic = "1\t";
+                String[] line = str.split("=>");
 
                 String[] reason = line[0].replaceAll("\\[", "").replaceAll("\\]", "").split(",");
                 String[] result = line[1].replaceAll("\\[", "").replaceAll("\\]", "").split(",");

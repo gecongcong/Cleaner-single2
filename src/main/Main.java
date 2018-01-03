@@ -13,11 +13,10 @@ import java.util.Map.Entry;
 
 public class Main {
     static String[] header = null;
-    static String baseURL = "/home/zju/experiment/dataSet";    // experiment baseURL
+    static String baseURL = "/home/gcc/experiment/dataSet";    // experiment baseURL
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
     static ArrayList<Integer> ignoredIDs = null;
-    public static String rulesURL = baseURL + "/HAI/rules.txt";
     //public static String dataURL = baseURL + "/HAI/HAI-5q-10%-error.csv";
 
 
@@ -26,7 +25,7 @@ public class Main {
 //        ArrayList<String> rules = new ArrayList<String>();
 //        ArrayList<String> newerRules = new ArrayList<String>();
 //        try {
-//            FileReader reader = new FileReader("/home/zju/experiment/dataSet/HAI/rules.txt");
+//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules.txt");
 //            BufferedReader br = new BufferedReader(reader);
 //            String line = null;
 //            while((line = br.readLine()) != null && line.length()!=0) {
@@ -124,16 +123,16 @@ public class Main {
     }
 
     public static void learnwt(String[] args) throws SQLException, IOException {
-        String dataURL = args[0];
+        String dataURL = args[1];
 
         double startTime = System.currentTimeMillis();    //获取开始时间
 
         Rule rule = new Rule();
         //Domain domain = new Domain();
-        String evidence_outFile = baseURL + "/HAI/evidence.db";
+        String evidence_outFile = baseURL + "/" + args[0] + "/evidence.db";
 
         //System.out.println("rootURL=" + rootURL);
-        cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";//存放清洗后的数据集
+        cleanedFileURL = baseURL + "/" + args[0] + "RDBSCleaner_cleaned.txt";//存放清洗后的数据集
         System.out.println("dataURL = " + dataURL);
         String splitString = ",";
 
@@ -148,7 +147,7 @@ public class Main {
         //domain.createMLN(rule.header, rulesURL);
 
         //调用MLN相关的命令参数
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         String marginal_args = "-marginal";
         //list.add(marginal_args);
         String learnwt_args = "-learnwt";
@@ -157,22 +156,22 @@ public class Main {
         //list.add(nopart_args);
         String mln_args = "-i";
         list.add(mln_args);
-        String mlnFileURL = baseURL + "/HAI/prog-new.mln";//prog.mln
-        mlnFileURL = args.length > 0 ? args[1] : mlnFileURL;
+//        String mlnFileURL = baseURL + "/HAI/prog-new.mln";//prog.mln
+        String mlnFileURL = args[2];
         // 根据输入的参数来跑
         list.add(mlnFileURL);
         String evidence_args = "-e";
         list.add(evidence_args);
-        String evidenceFileURL = baseURL + "/HAI/evidence.db"; //samples/smoke/
+        String evidenceFileURL = baseURL + "/" + args[0] + "/evidence.db"; //samples/smoke/
         list.add(evidenceFileURL);
         String queryFile_args = "-queryFile";
         list.add(queryFile_args);
-        String queryFileURL = baseURL + "/HAI/query.db";
+        String queryFileURL = baseURL + "/" + args[0] + "/query.db";
         list.add(queryFileURL);
         String outFile_args = "-r";
         list.add(outFile_args);
-        String weightFileURL = baseURL + "/HAI/out.txt";
-        weightFileURL = args.length > 0 ? args[2] : weightFileURL;
+//        String weightFileURL = baseURL + "/HAI/out.txt";
+        String weightFileURL = args[3];
         list.add(weightFileURL);
         String noDropDB = "-keepData";
         list.add(noDropDB);
@@ -191,7 +190,7 @@ public class Main {
         * */
 
         int batch = 1; // 可调节
-        int sampleSize = 1000; //课调节
+        int sampleSize = 1000; //可调节
 
         for (int i = 0; i < batch; i++) {
             //rule.resample(newTupleList,sampleSize);
@@ -200,15 +199,14 @@ public class Main {
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
 
-            //updateprogMLN("/home/zju/experiment/dataSet/HAI/out.txt" , dataURL);
+            //updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
         }
     }
 
     public static HashMap<Integer, String[]> main(String[] args) throws SQLException, IOException {
 
         String dataURL = baseURL + "/" + args[0] + "/" + args[1];
-//        setLineID(dataURL, dataURL.replaceAll(".csv", "-hasID.csv"));//给数据集标序号Tuple ID
-//        String tmp_dataURL = dataURL.replaceAll(".csv", "-hasID.csv");
+        String rulesURL = baseURL + "/" + args[0] + "/rules.txt";
         String tmp_dataURL = dataURL;
         Rule rule = new Rule();
         Domain domain = new Domain();
@@ -232,8 +230,6 @@ public class Main {
         int batch = 1; // 可调节
         List<HashMap<String, Double>> attributesPROBList = new ArrayList<>();
         for (int i = 0; i < batch; i++) {
-            //rule.formatEvidence(evidence_outFile);
-
             //读取参数学习得到的团权重，存入HashMap
             HashMap<String, Double> attributesPROB = Rule.loadRulesFromFile(baseURL + "/" + args[0] + "/out.txt");
             attributesPROBList.add(attributesPROB);
@@ -247,9 +243,10 @@ public class Main {
 
         //domain.printDomainContent(domain.domains);
 
-        //对每个Domain执行group by key操作
-        domain.groupByKey(domain.domains, rules);
+        //对每个Domain执行group by key操作,返回不被group到的outlier tuples
+        List<List<Tuple>> domain_outlier = domain.groupByKey(domain.domains, rules);
 
+        domain.smoothOutlierToGroup(domain_outlier, domain.Domain_to_Groups, domain.dataSet, attributesPROBList);
         //根据MLN的概率修正错误数据
         domain.correctByMLN(domain.Domain_to_Groups, attributesPROBList, domain.header, domain.domains);
 
@@ -282,7 +279,7 @@ public class Main {
         return domain.dataSet;
     }
 
-    public static void writeToFile( String[] header, ArrayList<String> list, String outFile){
+    public static void writeToFile(String[] header, ArrayList<String> list, String outFile) {
         File file = new File(outFile);
         FileWriter fw = null;
         BufferedWriter writer = null;
@@ -301,17 +298,17 @@ public class Main {
             fw = new FileWriter(file);
             writer = new BufferedWriter(fw);
 
-            writer.write("ID,"+Arrays.toString(header)
+            writer.write("ID," + Arrays.toString(header)
                     .replaceAll("[\\[\\]]", "")
                     .replaceAll(" ", ""));
             writer.newLine();//换行
 
-            for(String str: list){
+            for (String str : list) {
                 writer.write(str);
                 writer.newLine();
             }
             writer.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -346,7 +343,7 @@ public class Main {
             writer = new BufferedWriter(fw);
 
 
-            writer.write("ID,"+Arrays.toString(header)
+            writer.write("ID," + Arrays.toString(header)
                     .replaceAll("[\\[\\]]", "")
                     .replaceAll(" ", ""));
             writer.newLine();//换行

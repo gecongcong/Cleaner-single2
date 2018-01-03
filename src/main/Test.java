@@ -12,7 +12,7 @@ import static main.Main.cleanedFileURL;
 import static main.Main.setLineID;
 
 /**
- * Created by zju on 17-7-25.
+ * Created by gcc on 17-7-25.
  */
 public class Test {
 
@@ -351,7 +351,7 @@ public class Test {
         FileReader reader;
         try {
             //Read first-order-logic rules from file
-            reader = new FileReader("/home/zju/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
+            reader = new FileReader("/home/gcc/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
             BufferedReader br = new BufferedReader(reader);
 
             String line = null;
@@ -359,11 +359,11 @@ public class Test {
                 rules.add(line);
             }
             br.close();
-            /*Rule.partitionMLN("/home/zju/experiment/dataSet/" + args[0] + "/" + args[2],
-                    "/home/zju/experiment/dataSet/" + args[0] + "/" + args[1],
+            /*Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
+                    "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
                     rules, partitionNum, args[0]);*/
             System.out.println("Begin Partition MLNs into '" + partitionNum + "' parts.");
-            Rule.partitionMLN("/home/zju/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
+            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
 
             ArrayList<String> newMLNs = new ArrayList<>();
             ArrayList<String> dataURLs = new ArrayList<>();
@@ -372,23 +372,23 @@ public class Test {
             double startTime = System.currentTimeMillis();    //获取开始时间
             for (int i = 0; i < partitionNum; i++) {
                 System.out.println("************ PARTITION" + i + " ************");
-                String rulesWriteFile = "/home/zju/experiment/dataSet/HAI/rules-new" + i + ".txt";
-                String dataWriteFile = "/home/zju/experiment/dataSet/HAI/data-new" + i + ".txt";
-                String outFile = "/home/zju/experiment/dataSet/HAI/out-" + i + ".txt";
-                String mlnArgs[] = {dataWriteFile, rulesWriteFile, outFile};
-                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+                String dataWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/data-new" + i + ".txt";
+                String rulesWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/rules-new" + i + ".txt";
+                String outFile = "/home/gcc/experiment/dataSet/" + args[0] + "/out-" + i + ".txt";
+                String mlnArgs[] = {args[0],dataWriteFile, rulesWriteFile, outFile};
+//                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
 
-            normalizationMLN(newMLNs, dataURLs, "/home/zju/experiment/dataSet/HAI/out.txt");
+            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/" + args[0] + "/out.txt");
             //清洗阶段
             String mlnArgs[] = {args[0], args[2]};
             HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
 //            for(int i = 0; i < partitionNum; i++) {
-//                String rulesWriteFile = "/home/zju/experiment/dataSet/HAI/rules-new"+i+".txt";
-//                String dataWriteFile = "/hom e/zju/experiment/dataSet/HAI/data-new"+i+".txt";
+//                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new"+i+".txt";
+//                String dataWriteFile = "/hom e/gcc/experiment/dataSet/HAI/data-new"+i+".txt";
 //                String mlnArgs[] = {dataWriteFile, rulesWriteFile, args[2]};
 //                HashMap<Integer,String[]> dataSet = Main.main(mlnArgs);
 //                dataSetList.add(dataSet);
@@ -411,8 +411,8 @@ public class Test {
             double totalTime = (endTime - startTime) / 1000;
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
-            setLineID("/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI.csv", "/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
-            ArrayList<String> ground_data = pickData(dataSet, "/home/zju/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
+//            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth.csv", "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth-hasID.csv");
             ground_data.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {
@@ -427,14 +427,14 @@ public class Test {
                     }
                 }
             });
-            Main.writeToFile(Domain.header, ground_data, "/home/zju/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
+            Main.writeToFile(Domain.header, ground_data, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
 
-            evaluate(ground_data, cleanedFileURL, "/home/zju/experiment/dataSet/" + args[0] + "/" + args[2]);
-            /*evaluate("/home/zju/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
-                     "/home/zju/experiment/dataSet/" + args[0] + "/" + args[2]);*/
+            evaluate(ground_data, cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
+            /*evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
+                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //Main.updateprogMLN("/home/zju/experiment/dataSet/HAI/out.txt" , "/home/zju/experiment/dataSet/HAI/HAI-1q-test.txt");
+        //Main.updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , "/home/gcc/experiment/dataSet/HAI/HAI-1q-test.txt");
     }
 }
