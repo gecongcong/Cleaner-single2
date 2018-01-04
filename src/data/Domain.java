@@ -365,7 +365,7 @@ public class Domain {
                                      HashMap<Integer, String[]> dataSet, List<HashMap<String, Double>> attributesPROBList) {
 
         //HashMap<String, Double> attributesPROB = attributesPROBList.get(0);
-        int top_k = 4;
+        int top_k = 1;
 
         //convert domain_outlier(List) to HashSet
         HashSet<Integer> hashSet = new HashSet<>();
