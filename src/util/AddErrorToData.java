@@ -16,7 +16,7 @@ public class AddErrorToData {
     public static HashMap<Integer, String[]> dataSet = new HashMap<>();
     public static ArrayList<HashMap<String, Integer>> groupByValue = new ArrayList<>();
     public static float errorRate = 0.05f;
-    public static int discardNum = 2;   //丢弃的字符数量
+    public static int discardNum = 1;   //丢弃的字符数量
     static String[] header = null;
 
     class Data {
@@ -98,12 +98,12 @@ public class AddErrorToData {
                 String value = currTuple[1];
                 System.out.print("change value : " + value);
                 Random rand = new Random();
-                int randomNum = random.nextInt(discardNum);
+                int randomNum = rand.nextInt(discardNum);
                 String newValue;
-                if (value.length() > randomNum) {
-                    newValue = value.substring(0, value.length() - randomNum);
+                if (value.length() -1 > randomNum) {
+                    newValue = value.substring(0, value.length() - randomNum - 1);
                 } else {
-                    newValue = value.substring(0, randomNum - value.length());
+                    newValue = value.substring(0, randomNum - value.length() +1);
                 }
                 currTuple[1] = newValue;
                 System.out.print(" -> " + newValue + "\n");
@@ -123,7 +123,16 @@ public class AddErrorToData {
                 String[] currTuple = dataSet.get(errorKeyList.get(i));
                 String value = currTuple[2];
                 System.out.print("change value : " + value);
-
+                /*Random rand = new Random();
+                int randomNum = rand.nextInt(discardNum);
+                String newValue;
+                if (value.length() -1 > randomNum) {
+                    newValue = value.substring(0, value.length() - randomNum -1);
+                } else {
+                    newValue = value.substring(0, randomNum - value.length() +1 );
+                }
+                currTuple[2] = newValue;
+                System.out.print(" -> " + newValue + "\n");*/
                 while (true) {
                     String[] keys = groupByValue.get(2).keySet().toArray(new String[0]);
                     Random rand = new Random();
