@@ -209,7 +209,7 @@ public class Test {
         double recall;
         double precision;
 
-        System.err.print("no cleaned Line: \n[");
+        System.err.print("no cleaned Tuple: \n[");
         for (int i = 0; i < ground_data.size(); i++) {
             String current_ground = ground_data.get(i);
             String current_dirty = dirty_data.get(i);
@@ -217,7 +217,7 @@ public class Test {
             if (!current_ground.equals(current_dirty)) {
                 total_error_num++;
                 if (!current_clean.equals(current_ground)) {
-                    System.err.print((i + 2) + " ");  //no cleaned tuple:
+                    System.err.print(current_clean.substring(0,current_clean.indexOf(",")) + " ");  //no cleaned tuple:
 //                    System.out.println("current_ground = " + current_ground);
 //                    System.out.println("current_dirty = " + current_dirty);
 //                    System.out.println("current_clean = " + current_clean);
@@ -376,7 +376,7 @@ public class Test {
                 String rulesWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/rules-new" + i + ".txt";
                 String outFile = "/home/gcc/experiment/dataSet/" + args[0] + "/out-" + i + ".txt";
                 String mlnArgs[] = {args[0],dataWriteFile, rulesWriteFile, outFile};
-//                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }

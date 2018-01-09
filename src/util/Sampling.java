@@ -7,8 +7,8 @@ import java.util.*;
 
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
-    public static String sourceFile_hasID = baseURL + "synthetic-car/fulldb-1q-hasID-10%error.csv";//fulldb-1q-hasID-10%error
-    public static String sampleFile = baseURL + "synthetic-car/ground_truth-1q-hasID.csv";
+    public static String sourceFile_hasID = baseURL + "synthetic-car/fulldb-hasID-5%error.csv";//fulldb-1q-hasID-10%error
+    public static String sampleFile = baseURL + "synthetic-car/ground_truth-5q-hasID.csv";
     public static String trainFile = baseURL + "synthetic-car/trainData.csv";
     public static String testFile = baseURL + "synthetic-car/testData.csv";
     public static HashMap<String, ArrayList<Integer>> dataMap = new HashMap<>();//存放对应这条String的所有元组ID
@@ -353,9 +353,9 @@ public class Sampling {
     }
 
     public static void main(String[] args) {
-//        headSample(1500,sourceFile_hasID,sampleFile);
-        int sampleNum = 900;
-        int[] ignoredIDs = {0,3,4,5,6,7};
+//        headSample(5000,sourceFile_hasID,sampleFile);
+        int sampleNum = 15000;
+        int[] ignoredIDs = {3,4,5,7};
         new Sampling().run(sourceFile_hasID, trainFile, testFile, sampleNum, ignoredIDs);
     }
 }
