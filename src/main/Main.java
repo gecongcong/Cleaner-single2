@@ -274,12 +274,10 @@ public class Main {
         domain.printConflicts(domain.conflicts);
         domain.findCandidate(domain.conflicts, domain.domains, attributesPROBList.get(0), ignoredIDs);
 
-
         //print dataset after cleaning
         //domain.printDataSet(domain.dataSet);
 
         writeToFile(cleanedFileURL, domain.dataSet, domain.header);
-
 
         return domain.dataSet;
     }

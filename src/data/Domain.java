@@ -20,7 +20,7 @@ public class Domain {
     public static double MIN_DOUBLE = 0.0001;
     public static double MAX_DOUBLE = 9999;
 
-    public static double THRESHOLD = 0.91;
+    public static double THRESHOLD = 0.01;
 
     public static int AVGNum = 2;
 
@@ -319,7 +319,7 @@ public class Domain {
                             Tuple tuple2 = entry2.getValue();
                             String[] content2 = tuple2.getContext();
                             String[] reason2 = tuple2.reason;
-                            /*String content1_str = Arrays.toString(content1)
+                            String content1_str = Arrays.toString(content1)
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
@@ -327,8 +327,13 @@ public class Domain {
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
-                            JaroWinkler jw = new JaroWinkler();*/
-                            if (Arrays.equals(reason1, reason2)) {// jw.similarity(content1_str, content2_str) > THRESHOLD
+                            JaroWinkler jw = new JaroWinkler();
+                            int dis = 0;
+                            Cosine cosine = new Cosine();
+                            for (int j = 0; j < content1.length; j++) {
+                                dis+=cosine.distance(content1[j],content2[j]);
+                            }
+                            if (Arrays.equals(reason1, reason2)) {// ||  ||
                                 group.put(m, tuple2);
                                 flags.add(m);
                             }
@@ -381,16 +386,16 @@ public class Domain {
             List<Tuple> outliers = domain_outlier.get(i);
 
             for (Tuple outlierT : outliers) {
-                String[] out_content = dataSet.get(outlierT.tupleID);
-                /*String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
+//                String[] out_content = dataSet.get(outlierT.tupleID);
+                String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
                         .replaceAll("\\[", "")
                         .replaceAll("]", "")
-                        .replaceAll(" ", "");*/
+                        .replaceAll(" ", "");
                 double minDis = MAX_DOUBLE;
                 int minID = 0;
                 int mingi = -1;
 
-                if (outlierT.tupleID == 1032) {
+                if (outlierT.tupleID == 521) {
                     System.out.println();
                 }
 
@@ -427,24 +432,24 @@ public class Domain {
                             break;
                         }
                     }*/
-                    String[] curr_content = entry.getValue();
-                   /* String curr_content = Arrays.toString(entry.getValue())
+//                    String[] curr_content = entry.getValue();
+                    String curr_content = Arrays.toString(entry.getValue())
                             .replaceAll("\\[", "")
                             .replaceAll("]", "")
-                            .replaceAll(" ", "");*/
+                            .replaceAll(" ", "");
 
 
                     Cosine cosine = new Cosine();
-                    /*JaroWinkler jw = new JaroWinkler();
-                    NormalizedLevenshtein nll =new NormalizedLevenshtein();
-                    MetricLCS lcs = new MetricLCS();*/
                     double t_dis = 0;
+                    /*
                     for (int j = 0; j < out_content.length; j++) {
                         if (!out_content[j].equals(curr_content[j])) {
                             t_dis += cosine.distance(out_content[j], curr_content[j]);
                         }
-                    }
-//                    t_dis = jw.distance(out_content, curr_content);
+                    }*/
+                    t_dis = cosine.distance(out_content, curr_content);
+                    if (t_dis > 0.2) continue;
+
                     disList.add(new DistanceInfo(key, t_dis));
                 }
 
@@ -453,9 +458,9 @@ public class Domain {
                     public int compare(DistanceInfo o1, DistanceInfo o2) {
                         if (o1.distance > o2.distance) {
                             return 1;
-                        } else if(o1.distance == o2.distance){
+                        } else if (o1.distance == o2.distance) {
                             return 0;
-                        }else{
+                        } else {
                             return -1;
                         }
                     }
@@ -542,14 +547,14 @@ public class Domain {
     }
 
     public int distanceCost(String[] A, String[] B) {
+        Cosine cosine = new Cosine();
         int distance = -1;
         if (A.length != B.length) {
             System.err.println("Error: A != B");
         } else {
             distance = 0;
             for (int i = 0; i < A.length; i++) {
-                QGram qGram = new QGram();
-                distance += qGram.distance(A[i], B[i]);
+                distance += cosine.distance(A[i], B[i]);
             }
         }
 
@@ -585,19 +590,19 @@ public class Domain {
             //找到该Tuple的最小distance\
             int tupleID = t.tupleID;
 
+            Cosine cosine = new Cosine();
+
             for (int j = 0; j < tupleList.size(); j++) {
                 Tuple2 tuple2 = tupleList.get(j);
                 String tmp_candidate = tuple2.content;
                 //tupleID = tuple2.tupleID;
                 if (tuple.equals(tmp_candidate)) continue;
 
-                MetricLCS lcs = new MetricLCS();
+                /*MetricLCS lcs = new MetricLCS();
                 NormalizedLevenshtein l = new NormalizedLevenshtein();
                 JaroWinkler jw = new JaroWinkler();
-                Cosine cosine = new Cosine();
-                QGram qGram = new QGram();
-//                double distance = qGram.distance(tuple, tmp_candidate);
-                double distance = SpellChecker.distance(tuple, tmp_candidate);
+                QGram qGram = new QGram();*/
+                double distance = cosine.distance(tuple, tmp_candidate);
                 int N = replaceNCost(tmp_candidate, tupleList);
                 double tmp_cost = distance * N;
                 if (tmp_cost < dis) {
@@ -693,8 +698,11 @@ public class Domain {
                 if (cleanTuple != null) {
                     while (iter.hasNext()) {
                         Entry<Integer, Tuple> current = iter.next();
-                        group.put(current.getKey(), cleanTuple);
-                        domains.get(DGindex).put(current.getKey(), cleanTuple);
+                        Tuple copyT = cleanTuple;
+//                        Tuple copyT = copyTuple(cleanTuple);
+//                        copyT.tupleID = current.getKey();
+                        group.put(current.getKey(), copyT);
+                        domains.get(DGindex).put(current.getKey(), copyT);
                     }
                 }
             }
@@ -707,6 +715,18 @@ public class Domain {
             System.out.println("\n*******Domain " + (++d_index) + "*******");
             printGroup(groups);
         }
+    }
+
+    public static Tuple copyTuple(Tuple t1) {
+        Tuple t2 = new Tuple();
+        t2.setContext(t1.getContext());
+        t2.AttributeIndex = t1.AttributeIndex;
+        t2.AttributeNames = t1.getAttributeNames();
+        t2.reason = t1.reason;
+        t2.result = t1.result;
+        t2.reasonAttributeIndex = t1.reasonAttributeIndex;
+        t2.resultAttributeIndex = t1.resultAttributeIndex;
+        return t2;
     }
 
     /**
@@ -1090,12 +1110,13 @@ public class Domain {
             double prob = -1;
             Tuple fixTuple = new Tuple();
             boolean ischange = false;
+            if (id == 19)
+                System.out.println("debug here");
 
             for (int k = 0; k < domains.size(); k++) {
                 Tuple candidateTuple = new Tuple();
                 ArrayList<String[]> tmp_list = new ArrayList<>();//记录该冲突元组修复方案中对每一个domain的选择
                 HashMap<Integer, Tuple> first_domain = domains.get(k);
-
                 Tuple ct = first_domain.get(id);
                 int tupleID = ct.tupleID;
 
@@ -1118,7 +1139,8 @@ public class Domain {
                             while (iter.hasNext()) {
                                 Entry<Integer, Tuple> en = iter.next();
                                 Tuple t = en.getValue();
-                                if (ifContains(sameID, t.AttributeIndex) && ifSameValue(sameID, t, combinedTuple)) { //说明属性值也相同
+                                //说明属性值也相同
+                                if (ifSameValue(sameID, t, combinedTuple)) {  //ifContains(sameID, t.AttributeIndex) &&
 
                                     String[] tmp_context = new String[t.getContext().length];
                                     System.arraycopy(t.getContext(), 0, tmp_context, 0, t.getContext().length);
@@ -1185,10 +1207,8 @@ public class Domain {
                 tmp_prob /= dis;
                 if (tmp_prob > prob) {
                     ischange = true;
-
                     prob = tmp_prob;
                     fixTuple = candidateTuple;
-
 //                    System.out.print("P = " + prob + " , " + Arrays.toString(fixTuple.getContext()) + "\n");
                 }
             }
