@@ -22,7 +22,7 @@ public class Domain {
 
     public static double THRESHOLD = 0.01;
 
-    public static int AVGNum = 2;
+    public static int AVGNum = 1;
 
     public HashMap<Integer, String[]> dataSet = new HashMap<>();
 
@@ -107,13 +107,9 @@ public class Domain {
             int key; //tuple index
 
             if (ifHeader && (str = br.readLine()) != null) {  //The data has header
-                //   	header=str.split(splitString);
                 while ((str = br.readLine()) != null) {
-                    //	System.out.println(str);
-                    //dataSet.add(str.split(splitString));
-                    str = str.replaceAll(" ", "");
-                    key = Integer.parseInt(str.substring(0, str.indexOf(",")));
-                    String[] tuple = str.substring(str.indexOf(",") + 1).split(",");
+                    key = Integer.parseInt(str.substring(0, str.indexOf(splitString)));
+                    String[] tuple = str.substring(str.indexOf(splitString) + 1).split("\\|");
                     dataSet.put(key, tuple);
 
                     //为每一条rule划分数据集区域Di
@@ -166,9 +162,9 @@ public class Domain {
                 int length = 0;
 //	        	boolean flag = false;
                 while ((str = br.readLine()) != null) {
-                    //dataSet.add(str.split(splitString));
-                    key = Integer.parseInt(str.substring(0, str.indexOf(",")));
-                    String[] tuple = str.substring(str.indexOf(",") + 1).split(",");
+                    //dataSet.add(str.split("\\|"));
+                    key = Integer.parseInt(str.substring(0, str.indexOf(splitString)));
+                    String[] tuple = str.substring(str.indexOf(splitString) + 1).split("\\|");
                     dataSet.put(key, tuple);
 
                     for (int i = 0; i < rules_size; i++) {    //为每一条rule划分数据集区域Di
@@ -319,21 +315,12 @@ public class Domain {
                             Tuple tuple2 = entry2.getValue();
                             String[] content2 = tuple2.getContext();
                             String[] reason2 = tuple2.reason;
-                            String content1_str = Arrays.toString(content1)
-                                    .replaceAll("\\[", "")
-                                    .replaceAll("]", "")
-                                    .replaceAll(" ", "");
-                            String content2_str = Arrays.toString(content2)
-                                    .replaceAll("\\[", "")
-                                    .replaceAll("]", "")
-                                    .replaceAll(" ", "");
-                            JaroWinkler jw = new JaroWinkler();
                             int dis = 0;
                             Cosine cosine = new Cosine();
                             for (int j = 0; j < content1.length; j++) {
-                                dis+=cosine.distance(content1[j],content2[j]);
+                                dis += cosine.distance(content1[j], content2[j]);
                             }
-                            if (Arrays.equals(reason1, reason2)) {// ||  ||
+                            if (Arrays.equals(reason1, reason2)) {
                                 group.put(m, tuple2);
                                 flags.add(m);
                             }
@@ -386,11 +373,16 @@ public class Domain {
             List<Tuple> outliers = domain_outlier.get(i);
 
             for (Tuple outlierT : outliers) {
-//                String[] out_content = dataSet.get(outlierT.tupleID);
-                String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
-                        .replaceAll("\\[", "")
-                        .replaceAll("]", "")
-                        .replaceAll(" ", "");
+                String out_content = "";
+                String[] currT = dataSet.get(outlierT.tupleID);
+                int m = 0;
+                for (String t : currT) {
+                    out_content += t;
+                    if (m != currT.length - 1) {
+                        out_content += "|";
+                    }
+                    m++;
+                }
                 double minDis = MAX_DOUBLE;
                 int minID = 0;
                 int mingi = -1;
@@ -432,12 +424,17 @@ public class Domain {
                             break;
                         }
                     }*/
-//                    String[] curr_content = entry.getValue();
-                    String curr_content = Arrays.toString(entry.getValue())
-                            .replaceAll("\\[", "")
-                            .replaceAll("]", "")
-                            .replaceAll(" ", "");
 
+                    String curr_content = "";
+                    String[] value = entry.getValue();
+                    int ki = 0;
+                    for (String t : value) {
+                        curr_content += t;
+                        if (ki != value.length - 1) {
+                            curr_content += "|";
+                        }
+                        ki++;
+                    }
 
                     Cosine cosine = new Cosine();
                     double t_dis = 0;
@@ -478,10 +475,17 @@ public class Domain {
                     Iterator<Entry<Integer, Tuple>> it = group.entrySet().iterator();
                     while (it.hasNext()) {
                         Entry<Integer, Tuple> entry = it.next();
-                        String content = Arrays.toString(entry.getValue().getContext())
-                                .replaceAll("\\[", "")
-                                .replaceAll("]", "")
-                                .replaceAll(" ", "");
+
+                        String content = "";
+                        String[] value = entry.getValue().getContext();
+                        int ki = 0;
+                        for (String t : value) {
+                            content += t;
+                            if (ki != value.length - 1) {
+                                content += "|";
+                            }
+                            ki++;
+                        }
                         if (null == reverse_group.get(content)) {
                             reverse_group.put(content, 1);
                         } else {
@@ -501,10 +505,17 @@ public class Domain {
                     for (; gi < groupList.size(); gi++) {
                         HashMap<Integer, Tuple> group = groupList.get(gi);
                         if (group.containsKey(tupleID)) {
-                            String content = Arrays.toString(group.get(tupleID).getContext())
-                                    .replaceAll("\\[", "")
-                                    .replaceAll("]", "")
-                                    .replaceAll(" ", "");
+
+                            String content = "";
+                            String[] value = group.get(tupleID).getContext();
+                            int ki = 0;
+                            for (String t : value) {
+                                content += t;
+                                if (ki != value.length - 1) {
+                                    content += "|";
+                                }
+                                ki++;
+                            }
                             int num = reverse_group_list.get(gi).get(content);
                             t_cost = dis / num;
                             break;
@@ -578,7 +589,6 @@ public class Domain {
             System.arraycopy(tuple.getContext(), 0, content, 0, length);
             Arrays.sort(content);
             String t = Arrays.toString(content);
-//			String t = Arrays.toString(content).replaceAll("\\[","").replaceAll("]","");
             tupleList.add(new Tuple2(tupleID, t));
         }
 
@@ -634,6 +644,11 @@ public class Domain {
 //			System.out.println("---------------"+(DGindex+1)+"--------------------");
 
             for (int i = 0; i < groups.size(); i++) {
+
+                if(i==1){
+                    System.out.println("debug");
+                }
+
                 HashMap<Integer, Tuple> group = groups.get(i);
                 HashMap<Integer, Integer> weight = new HashMap<>();
 

@@ -84,7 +84,7 @@ public class Main {
     /**
      * 为数据集设置TupleID
      */
-    public static void setLineID(String readURL, String writeURL) {
+    public static void setLineID(String readURL, String writeURL, String splitString) {
         // read file content from file
         FileReader reader = null;
         try {
@@ -96,16 +96,16 @@ public class Main {
             FileWriter writer = new FileWriter(writeURL);
             BufferedWriter bw = new BufferedWriter(writer);
 
-            String str = "";
+            String str;
             int index = 0;
             while ((str = br.readLine()) != null) {
-                str = str.replaceAll(" ", "");
+//                str = str.replaceAll(" ", "");
                 StringBuffer sb = new StringBuffer(str);
                 if (index == 0) {
-                    sb.insert(0, "ID,");
+                    sb.insert(0, "ID" + splitString);
                     bw.write(sb.toString() + "\n");
                 } else {
-                    sb.insert(0, index + ",");
+                    sb.insert(0, index + splitString);
                     bw.write(sb.toString() + "\n");
                 }
                 index++;
@@ -134,7 +134,7 @@ public class Main {
         //System.out.println("rootURL=" + rootURL);
         cleanedFileURL = baseURL + "/" + args[0] + "RDBSCleaner_cleaned.txt";//存放清洗后的数据集
         System.out.println("dataURL = " + dataURL);
-        String splitString = ",";
+        String splitString = "|";
 
         boolean ifHeader = true;
         //List<Tuple> rules = rule.loadRules(dataURL, rulesURL, splitString);
@@ -215,9 +215,9 @@ public class Main {
         cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";  //存放清洗后的数据集
         System.out.println("dataURL = " + tmp_dataURL);
 
-        String splitString = ",";
+        String splitString = "|";
         boolean ifHeader = true;
-        List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL, splitString);
+        List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL);
         rule.initData(tmp_dataURL, splitString, ifHeader);
         ignoredIDs = rule.findIgnoredTuples(rules);
         domain.header = rule.header;
@@ -295,8 +295,8 @@ public class Main {
             }
             fw = new FileWriter(file);
             writer = new BufferedWriter(fw);
-
-            writer.write("ID," + Arrays.toString(header)
+            writer.write("ID|" + Arrays.toString(header)
+                    .replaceAll(",","|")
                     .replaceAll("[\\[\\]]", "")
                     .replaceAll(" ", ""));
             writer.newLine();//换行
@@ -341,14 +341,25 @@ public class Main {
             writer = new BufferedWriter(fw);
 
 
-            writer.write("ID," + Arrays.toString(header)
+            writer.write("ID|" + Arrays.toString(header)
                     .replaceAll("[\\[\\]]", "")
-                    .replaceAll(" ", ""));
+                    .replaceAll(" ", "")
+                    .replaceAll(",", "|"));
             writer.newLine();//换行
 
             for (Map.Entry<Integer, String[]> map : list) {
-                String line = Arrays.toString(map.getValue()).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
-                writer.write(map.getKey() + "," + line);
+                String line = "";
+                int i = 0;
+                String[] value = map.getValue();
+                int size = value.length;
+                for (String t : value) {
+                    line += t;
+                    if (i != size - 1) {
+                        line += "|";
+                    }
+                    i++;
+                }
+                writer.write(map.getKey() + "|" + line);
                 writer.newLine();//换行
             }
             writer.flush();

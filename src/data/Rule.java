@@ -134,8 +134,8 @@ public class Rule {
     }
 
 
-    public static void partitionMLN(String file,ArrayList<String> rules, int partitionNum, String dataName) {
-        String fileURL = groundRules(file, rules);
+    public static void partitionMLN(String file,ArrayList<String> rules, int partitionNum, String dataName,String splitString) {
+        String fileURL = groundRules(file, rules,splitString);
         /*
         HashMap<String, String> map = combineRulesFile(clean_fileURL, dirty_fileURL, dataName);
         String newcleanFile = cleanfile.replaceAll(".csv", "-hasID.csv");
@@ -166,15 +166,14 @@ public class Rule {
                 rulesBw[i] = new BufferedWriter(fw1);
                 FileWriter fw2 = new FileWriter(dataWriteFile);
                 dataBw[i] = new BufferedWriter(fw2);
-                rulesBw[i].write("model(valuemodel)\n" +
-                        "make(valuemake)\n" +
-                        "type(valuetype)\n" +
-                        "year(valueyear)\n" +
-                        "condition(valuecondition)\n" +
-                        "wheelDrive(valuewheelDrive)\n" +
-                        "doors(valuedoors)\n" +
-                        "engine(valueengine)\n\n");
-                dataBw[i].write("model,make,type,year,condition,wheelDrive,doors,engine\n");
+                rulesBw[i].write("CUSTKEY(valueCUSTKEY)\n" +
+                        "NAME(valueNAME)\n" +
+                        "ADDRESS(valueADDRESS)\n" +
+                        "NATIONKEY(valueNATIONKEY)\n" +
+                        "PHONE(valuePHONE)\n" +
+                        "ACCTBAL(valueACCTBAL)\n" +
+                        "MKTSEGMENT(valueMKTSEGMENT)\n\n");
+                dataBw[i].write("CUSTKEY|NAME|ADDRESS|NATIONKEY|PHONE|ACCTBAL|MKTSEGMENT\n");
             }
 
             //写入rules-new.txt
@@ -195,9 +194,9 @@ public class Rule {
                 String prob = entry.getValue();
                 String rule = mln.replaceAll("\\)v", ") v ");
                 rulesBw[i].write(prob + "\t" + rule + "\n");
-                ArrayList<String> result = findMatchedTuple(rule, tuples);
+                ArrayList<String> result = findMatchedTuple(rule, tuples,splitString);
                 for (String tuple : result) {
-                    int index = tuple.indexOf(",");
+                    int index = tuple.indexOf(splitString);
                     dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index+1));
                 }
                 number_i++;
@@ -233,12 +232,13 @@ public class Rule {
      * Using clean data and dirty data to generate MLN,
      * partition MLN and clean data
      */
-    public static void partitionMLN(String dirtyfile, String cleanfile, ArrayList<String> rules, int partitionNum, String dataName) {
-        String dirty_fileURL = groundRules(dirtyfile, rules);
-        String clean_fileURL = groundRules(cleanfile, rules);
+    public static void partitionMLN(String dirtyfile, String cleanfile, ArrayList<String> rules,
+                                    int partitionNum, String dataName, String splitString) {
+        String dirty_fileURL = groundRules(dirtyfile, rules,splitString);
+        String clean_fileURL = groundRules(cleanfile, rules,splitString);
         HashMap<String, String> map = combineRulesFile(clean_fileURL, dirty_fileURL, dataName);
         String newcleanFile = cleanfile.replaceAll(".csv", "-hasID.csv");
-        Main.setLineID(cleanfile, newcleanFile);
+        Main.setLineID(cleanfile, newcleanFile,splitString);
         ArrayList<String> tuples = readFileNoHeader(newcleanFile);//list里包含ID
         Iterator<Map.Entry<String, String>> iter = map.entrySet().iterator();
 
@@ -292,9 +292,9 @@ public class Rule {
                 String prob = entry.getValue();
                 String rule = mln.replaceAll("\\)v", ") v ");
                 rulesBw[i].write(prob + "\t" + rule + "\n");
-                ArrayList<String> result = findMatchedTuple(rule, tuples);
+                ArrayList<String> result = findMatchedTuple(rule, tuples,splitString);
                 for (String tuple : result) {
-                    int index = tuple.indexOf(",");
+                    int index = tuple.indexOf(splitString);
                     dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index+1));
                 }
                 number_i++;
@@ -329,13 +329,12 @@ public class Rule {
     /**
      * Find tupleList that matches rule R in specific Tuples.
      */
-    public static ArrayList<String> findMatchedTuple(String rule, ArrayList<String> tuples) {
+    public static ArrayList<String> findMatchedTuple(String rule, ArrayList<String> tuples,String splitString) {
         ArrayList<String> result = new ArrayList<>();
         String[] ruleValues = rule.split(" v ");
         //提取value in rule R
         for (int i = 0; i < ruleValues.length; i++) {
-            ruleValues[i] = ruleValues[i].replaceAll(" ", "")
-                    .replaceAll("\"", "")
+            ruleValues[i] = ruleValues[i].replaceAll("\"", "")
                     .replaceAll(".*\\(", "")
                     .replaceAll("\\)", "");
         }
@@ -344,9 +343,9 @@ public class Rule {
         //Select tuples including rule values, then save them.
         for (int i = 0; i < tuples.size(); i++) {//i=0: is header, so escape
             String str = tuples.get(i);
-            int index = str.indexOf(",");
+            int index = str.indexOf(splitString);
             String id = str.substring(0, index);
-            String[] tuple = str.substring(index + 1).split(",");
+            String[] tuple = str.substring(index + 1).split("\\|");
             Arrays.sort(tuple);
 
             //ifContains
@@ -386,7 +385,7 @@ public class Rule {
 //            String clean_prob = clean_entry.getValue();
             for (int i = 0; i < dirty_list.size(); i++) {
                 String rule = dirty_list.get(i);
-                String dirty_mln = rule.substring(4).replaceAll(" ", "");
+                String dirty_mln = rule.substring(4);
                 if (clean_mln.equals(dirty_mln)) {
                     dirty_list.remove(rule);
                 }
@@ -394,7 +393,7 @@ public class Rule {
         }
         for (int i = 0; i < dirty_list.size(); i++) {
             String rule = dirty_list.get(i);
-            String dirty_mln = rule.substring(5).replaceAll(" ", "");
+            String dirty_mln = rule.substring(5);
             String dirty_prob = rule.substring(0, 4);
             clean_map.put(dirty_mln, dirty_prob);
         }
@@ -423,7 +422,7 @@ public class Rule {
     /**
      * 生成对应数据集的grounding rules
      */
-    public static String groundRules(String filename, ArrayList<String> rules) {
+    public static String groundRules(String filename, ArrayList<String> rules,String splitString) {
         HashMap<String, GroundRule> map = new HashMap<>();
         String writeFile = filename.replaceAll("\\.csv", "\\.gr");
         try {
@@ -443,10 +442,10 @@ public class Rule {
             while ((tmp = br.readLine()) != null) {
                 if (i == 0) {
                     i++;
-                    header = tmp.replaceAll(" ", "").split(",");
+                    header = tmp.replaceAll(" ", "").split("\\|");
                     continue;
                 } else {
-                    String[] tuple = tmp.replaceAll(" ", "").split(",");
+                    String[] tuple = tmp.split("\\|");
                     for (int k = 0; k < rules.size(); k++) {
                         String currentRule = rules.get(k);
                         for (int j = 0; j < header.length; j++) {
@@ -483,7 +482,7 @@ public class Rule {
         return writeFile;
     }
 
-    public static HashMap<String, GroundRule> createMLN(String dirtyfile, String cleanfile, ArrayList<String> rules, int partitionNum, String dataName) {
+    /*public static HashMap<String, GroundRule> createMLN(String dirtyfile, String cleanfile, ArrayList<String> rules, int partitionNum, String dataName) {
         //HashMap<String,GroundRule> results = new HashMap<String,GroundRule>();
         HashMap<String, GroundRule> map = new HashMap<>();
         //partitionNum = 3;
@@ -527,7 +526,7 @@ public class Rule {
             // 文件读出的数据
             while ((tmp = br.readLine()) != null) {
                 if (i == 0) {
-                    header = tmp.replaceAll(" ", "").split(",");
+                    header = tmp.split(",");
                 } else {
                     String[] tuple = tmp.replaceAll(" ", "").split(",");
                     // 一行数据
@@ -591,16 +590,16 @@ public class Rule {
             e.printStackTrace();
         }
         return map;
-    }
+    }*/
 
-    public void getHeader(String DBurl, String splitString) {
+    public void getHeader(String DBurl) {
         try {
             FileReader reader;
             reader = new FileReader(DBurl);
             BufferedReader br = new BufferedReader(reader);
             String line = null;
             if ((line = br.readLine()) != null) {
-                header = line.split(splitString);
+                header = line.split("\\|");
             } else {
                 System.err.println("Error: No header!");
             }
@@ -617,17 +616,16 @@ public class Rule {
      * getting predicates
      *
      * @param fileURL
-     * @param splitString
      * @return List<String[]>
      * @throws IOException
      */
-    public List<Tuple> loadRules(String DBurl, String fileURL, String splitString) throws IOException {
+    public List<Tuple> loadRules(String DBurl, String fileURL) throws IOException {
         System.out.println(">>> Getting Predicates.......");
         FileReader reader;
         String[] reason_predicates = null;
         String[] result_predicates = null;
         List<Tuple> list = new ArrayList<Tuple>();
-        getHeader(DBurl, splitString);
+        getHeader(DBurl);
 
         try {
             reader = new FileReader(fileURL);
@@ -643,12 +641,12 @@ public class Rule {
 
             while ((line = br.readLine()) != null && line.length() != 0) {  //The data has header
 
-                line = line.replaceAll("1\t", "").replaceAll(" ", "");
+                line = line.replaceAll("1\t", "");
 
                 String[] line_partiton = line.split("=>");
 
-                String[] reason = line_partiton[0].split(splitString);
-                String[] result = line_partiton[1].split(splitString);
+                String[] reason = line_partiton[0].replaceAll(" ","").split("\\|");
+                String[] result = line_partiton[1].replaceAll(" ","").split("\\|");
 
                 int reason_length = reason.length;
                 int result_length = result.length;
@@ -727,7 +725,7 @@ public class Rule {
 //            br.readLine();
             while ((line = br.readLine()) != null && line.length() != 0) {
                 String prob = line.substring(0, 4);
-                String mln = line.substring(5).replaceAll(" ", "");
+                String mln = line.substring(5);
                 map.put(mln, prob);//<k,v>=<mln,prob>
             }
             br.close();
@@ -928,11 +926,7 @@ public class Rule {
     }
 
 
-    /**
-     * @param fileURL
-     * @param outFile
-     */
-    public void formatRules(String fileURL, String outFile) {
+    /*public void formatRules(String fileURL, String outFile) {
 
         FileReader inFile;
         try {
@@ -1001,7 +995,7 @@ public class Rule {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     void setPredicate(String predicate) {
         this.predicate = predicate;
@@ -1046,10 +1040,9 @@ public class Rule {
                 str = str.substring(str.indexOf(",") + 1);
                 String[] line = str.split(" v ");
                 for (String value : line) {
-                    value = value.replaceAll(" ", "")
-                            .replaceAll("\"", "")
+                    value = value.replaceAll("\"", "")
                             .replaceAll(".*\\(", "")
-                            .replaceAll("\\)", "");
+                            .replaceAll("\\).*", "");
                     mlnClause.values.add(value);
                 }
                 clauses.add(mlnClause);
@@ -1075,7 +1068,7 @@ public class Rule {
     /**
      * Init Rules
      */
-    public void initRules(String fileURL) {
+    /*public void initRules(String fileURL) {
         //default fileURL = "E:\\eclipse_workspace\\DiscoverRules-v2.0\\rules.txt";
         FileReader reader;
         try {
@@ -1135,7 +1128,7 @@ public class Rule {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     /**
      * Init Data
@@ -1152,20 +1145,20 @@ public class Rule {
             int index = 0; //tuple index
             if (ifHeader && (str = br.readLine()) != null) {  //The data has header
 
-                header = str.substring(str.indexOf(",") + 1).split(splitString);
+                header = str.substring(str.indexOf(splitString) + 1).split("\\|");
 
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
-                    t.init(str, splitString, index);//init the tuple,split with ","
+                    str = str.substring(str.indexOf(splitString) + 1);
+                    t.init(str, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;
                 }
             } else { //如果没有header
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
-                    t.init(str, splitString, index);//init the tuple,split with ","
+                    str = str.substring(str.indexOf(splitString) + 1);
+                    t.init(str, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;
                 }

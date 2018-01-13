@@ -48,8 +48,8 @@ public class Tuple {
 		}
 	}
 	
-	public void init(String tupleLine,String splitString,int index){//Init the tuple
-		this.TupleContext = tupleLine.split(splitString);
+	public void init(String tupleLine,int index){//Init the tuple
+		this.TupleContext = tupleLine.split("\\|");
 		this.tupleID = index;
 		//System.out.println("Tuple.length = "+Tuple.length);
 	}

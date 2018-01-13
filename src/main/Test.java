@@ -164,12 +164,10 @@ public class Test {
         try {
             reader = new FileReader(URL);
             BufferedReader br = new BufferedReader(reader);
-            String line = null;
-            String current = "";
-            int key = 0; //tuple index
+            String line;
             br.readLine();
             while ((line = br.readLine()) != null && line.length() != 0) {
-                context.add(line.replaceAll(" ", ""));
+                context.add(line);
             }
             br.close();
 
@@ -217,7 +215,7 @@ public class Test {
             if (!current_ground.equals(current_dirty)) {
                 total_error_num++;
                 if (!current_clean.equals(current_ground)) {
-                    System.err.print(current_clean.substring(0,current_clean.indexOf(",")) + " ");  //no cleaned tuple:
+                    System.err.print(current_clean.substring(0,current_clean.indexOf("|")) + " ");  //no cleaned tuple:
 //                    System.out.println("current_ground = " + current_ground);
 //                    System.out.println("current_dirty = " + current_dirty);
 //                    System.out.println("current_clean = " + current_clean);
@@ -349,13 +347,14 @@ public class Test {
         ArrayList<String> rules = new ArrayList<>();
         ArrayList<HashMap<Integer, String[]>> dataSetList = new ArrayList<>();
         FileReader reader;
+        String splitString = "|";
         try {
             //Read first-order-logic rules from file
             reader = new FileReader("/home/gcc/experiment/dataSet/" + args[0] + "/rules-first-order.txt");
             BufferedReader br = new BufferedReader(reader);
 
             String line = null;
-            while ((line = br.readLine()) != null && line.length() != 0) {
+            while ((line = br.readLine()) != null && line.length() != 0) {//载入rules
                 rules.add(line);
             }
             br.close();
@@ -363,7 +362,7 @@ public class Test {
                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
                     rules, partitionNum, args[0]);*/
             System.out.println("Begin Partition MLNs into '" + partitionNum + "' parts.");
-            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
+            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0],splitString);
 
             ArrayList<String> newMLNs = new ArrayList<>();
             ArrayList<String> dataURLs = new ArrayList<>();
@@ -376,7 +375,7 @@ public class Test {
                 String rulesWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/rules-new" + i + ".txt";
                 String outFile = "/home/gcc/experiment/dataSet/" + args[0] + "/out-" + i + ".txt";
                 String mlnArgs[] = {args[0],dataWriteFile, rulesWriteFile, outFile};
-                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+//                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
@@ -386,24 +385,7 @@ public class Test {
             String mlnArgs[] = {args[0], args[2]};
             HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
-//            for(int i = 0; i < partitionNum; i++) {
-//                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new"+i+".txt";
-//                String dataWriteFile = "/hom e/gcc/experiment/dataSet/HAI/data-new"+i+".txt";
-//                String mlnArgs[] = {dataWriteFile, rulesWriteFile, args[2]};
-//                HashMap<Integer,String[]> dataSet = Main.main(mlnArgs);
-//                dataSetList.add(dataSet);
-//            }
 
-//            for(int i=0;i<dataSetList.size();i++){
-//                HashMap<Integer,String[]> dataSet = dataSetList.get(i);
-//                newDataset.putAll(dataSet);
-//            }
-//            Collections.sort(new ArrayList<>(newDataset.entrySet()), new Comparator<Map.Entry<Integer, String[]>>() {
-//                @Override
-//                public int compare(Map.Entry<Integer, String[]> o1, Map.Entry<Integer, String[]> o2) {
-//                    return o1.getKey().compareTo(o2.getKey());
-//                }
-//            });
             Main.writeToFile(cleanedFileURL, dataSet, Domain.header);
             System.out.println("cleanedDataSet.txt stored in=" + cleanedFileURL);
 
@@ -412,12 +394,12 @@ public class Test {
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
 //            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth.csv", "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
-            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth-hasID.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "join-1q.csv");
             ground_data.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {
-                    int index1 = o1.indexOf(",");
-                    int index2 = o2.indexOf(",");
+                    int index1 = o1.indexOf(splitString);
+                    int index2 = o2.indexOf(splitString);
                     int id1 = Integer.parseInt(o1.substring(0, index1));
                     int id2 = Integer.parseInt(o2.substring(0, index2));
                     if (id1 > id2) {

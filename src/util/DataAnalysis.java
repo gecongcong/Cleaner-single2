@@ -12,7 +12,10 @@ public class DataAnalysis {
     public static String dirtyFile_hasID = baseURL + "RDBSCleaner_cleaned.txt";
     public static String outFile = baseURL + "synthetic-car/WhereIsDirtyData.csv";
 
-    public static void main(String[] args) {
+
+
+
+    public static void analyseErrorLine(String[] args) {
         ArrayList<String[]> cleanList = new ArrayList<>();
         ArrayList<String[]> dirtyList = new ArrayList<>();
         try {
@@ -80,5 +83,9 @@ public class DataAnalysis {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+
     }
 }

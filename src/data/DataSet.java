@@ -29,7 +29,7 @@ public class DataSet {
 	        	header=str.split(splitString);
 	        	while((str = br.readLine()) != null) {
 		        	Tuple t = new Tuple();
-		        	t.init(str,splitString,index);//init the tuple,split with ","
+		        	t.init(str,index);//init the tuple,split with "\\|"
 		        	tupleList.add(t);
 		        	index++;
 		        }
@@ -37,7 +37,7 @@ public class DataSet {
 	        	
 	        	while((str = br.readLine()) != null) {
 	        		Tuple t = new Tuple();
-		        	t.init(str,splitString,index);//init the tuple,split with ","
+		        	t.init(str,index);//init the tuple,split with "\\|"
 		        	tupleList.add(t);
 		        	index++;
 		        }
