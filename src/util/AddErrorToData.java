@@ -12,8 +12,8 @@ import java.util.*;
  * Created by gcc on 17-9-27.
  */
 public class AddErrorToData {
-    public static String fileURL = "/home/gcc/experiment/dataSet/customer/join-1q.csv";
-    public static String outURL = "/home/gcc/experiment/dataSet/customer/join-1q-10%error.csv";
+    public static String fileURL = "/home/gcc/experiment/dataSet/customer/join-5q.csv";
+    public static String outURL = "/home/gcc/experiment/dataSet/customer/join-5q-10%error.csv";
     public static HashMap<Integer, String[]> dataSet = new HashMap<>();
     public static ArrayList<HashMap<String, Integer>> groupByValue = new ArrayList<>();
     public static float replaceRate = 0.10f;

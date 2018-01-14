@@ -394,7 +394,7 @@ public class Test {
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
 //            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth.csv", "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
-            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "join-1q.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "join-5q.csv");
             ground_data.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {

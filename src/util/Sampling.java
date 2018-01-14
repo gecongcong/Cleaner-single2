@@ -8,8 +8,8 @@ import java.util.*;
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
     public static String outFile = baseURL + "customer/join-total-hasID.csv";
-    public static String sourceFile_hasID = baseURL + "customer/join-1q-10%error.csv";//customer.tbl
-    public static String sampleFile = baseURL + "customer/join-1q.csv";
+    public static String sourceFile_hasID = baseURL + "customer/join-5q-10%error.csv";//customer.tbl
+    public static String sampleFile = baseURL + "customer/join-5q.csv";
     public static String trainFile = baseURL + "customer/trainData.csv";
     public static String testFile = baseURL + "customer/testData.csv";
     public static HashMap<String, ArrayList<Integer>> dataMap = new HashMap<>();//存放对应这条String的所有元组ID
@@ -508,10 +508,10 @@ public class Sampling {
 //        removeLastSplit(sourceFile_hasID,outFile,"|");
 //        Main.setLineID(sampleFile,sampleFile.replaceAll("\\.csv","\\-hasID.csv"),"|");
 //        Main.setLineID(sourceFile_hasID,outFile,"|");
-//        headSample(1000, outFile, sampleFile);
+//        headSample(5000, outFile, sampleFile);
 //        convert(sampleFile, outFile);
 //        sort(sourceFile_hasID,outFile);
-        int sampleNum = 500;
+        int sampleNum = 3000;
         int[] ignoredIDs = {0, 2, 4, 5, 6, 7};
         new Sampling().run(sourceFile_hasID, trainFile, testFile, sampleNum, ignoredIDs);
     }
