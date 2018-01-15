@@ -13,10 +13,10 @@ import java.util.Map.Entry;
 
 public class Main {
     static String[] header = null;
-    static String baseURL = "/home/zju/experiment/dataSet";    // experiment baseURL
+    static String baseURL = "/home/gcc/experiment/dataSet";    // experiment baseURL
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
-    static ArrayList<Integer> ignoredIDs = null;
+//    static ArrayList<Integer> ignoredIDs = null;
     public static String rulesURL = baseURL + "/HAI/rules.txt";
     //public static String dataURL = baseURL + "/HAI/HAI-5q-10%-error.csv";
 
@@ -26,7 +26,7 @@ public class Main {
 //        ArrayList<String> rules = new ArrayList<String>();
 //        ArrayList<String> newerRules = new ArrayList<String>();
 //        try {
-//            FileReader reader = new FileReader("/home/zju/experiment/dataSet/HAI/rules.txt");
+//            FileReader reader = new FileReader("/home/gcc/experiment/dataSet/HAI/rules.txt");
 //            BufferedReader br = new BufferedReader(reader);
 //            String line = null;
 //            while((line = br.readLine()) != null && line.length()!=0) {
@@ -123,7 +123,7 @@ public class Main {
         }
     }
 
-    public static void learnwt(String[] args) throws SQLException, IOException {
+    public static void learnwt(String[] args,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
         String dataURL = args[0];
 
         double startTime = System.currentTimeMillis();    //获取开始时间
@@ -139,7 +139,7 @@ public class Main {
 
         boolean ifHeader = true;
         //List<Tuple> rules = rule.loadRules(dataURL, rulesURL, splitString);
-        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用
+        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用,同时赋予全局的Header值
         //ArrayList<Tuple> newTupleList = rule.tupleList;
         //dataSet是所有数据的集合，我要从里面拿出
         //ignoredIDs = rule.findIgnoredTuples(rules);
@@ -148,7 +148,7 @@ public class Main {
         //domain.createMLN(rule.header, rulesURL);
 
         //调用MLN相关的命令参数
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         String marginal_args = "-marginal";
         //list.add(marginal_args);
         String learnwt_args = "-learnwt";
@@ -191,20 +191,20 @@ public class Main {
         * */
 
         int batch = 1; // 可调节
-        int sampleSize = 1000; //课调节
+        int sampleSize = 1000; //可调节
 
         for (int i = 0; i < batch; i++) {
             //rule.resample(newTupleList,sampleSize);
-            rule.formatEvidence(evidence_outFile);
+            rule.formatEvidence(evidence_outFile,ignoredIDs);
 
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
 
-            //updateprogMLN("/home/zju/experiment/dataSet/HAI/out.txt" , dataURL);
+            //updateprogMLN("/home/gcc/experiment/dataSet/HAI/out.txt" , dataURL);
         }
     }
 
-    public static HashMap<Integer, String[]> main(String[] args) throws SQLException, IOException {
+    public static HashMap<Integer, String[]> main(String[] args, String[] header,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
 
         String dataURL = baseURL + "/" + args[0] + "/" + args[1];
 //        setLineID(dataURL, dataURL.replaceAll(".csv", "-hasID.csv"));//给数据集标序号Tuple ID
@@ -219,11 +219,11 @@ public class Main {
 
         String splitString = ",";
         boolean ifHeader = true;
-        List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL, splitString);
+        List<Tuple> rules = rule.loadRules(rulesURL, splitString);
         rule.initData(tmp_dataURL, splitString, ifHeader);
-        ignoredIDs = rule.findIgnoredTuples(rules);
-        domain.header = rule.header;
-        header = rule.header;
+//        ignoredIDs = rule.findIgnoredTuples(rules);
+        domain.header = header;
+//        header = rule.header;
 
 
         /*
@@ -243,6 +243,8 @@ public class Main {
         * 清洗阶段
         * */
         //区域划分 形成Domains
+        /*String tmp_dataURL1 = tmp_dataURL.replaceAll("\\.csv","\\-hasID.csv");
+        setLineID(tmp_dataURL,tmp_dataURL1);*/
         domain.init(tmp_dataURL, splitString, ifHeader, rules);
 
         //domain.printDomainContent(domain.domains);

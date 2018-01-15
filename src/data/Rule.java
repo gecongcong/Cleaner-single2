@@ -30,7 +30,37 @@ public class Rule {
     }
 
 
-    //
+    public ArrayList<Integer> findIgnoredIDs(List<Tuple> rules, String[] header) {
+        ArrayList<Integer> ignoredIDs = new ArrayList<Integer>();
+        HashMap<String, Integer> map = new HashMap<>(header.length);
+
+        for (Tuple rule : rules) {
+            int i = 0;
+            while (i < rule.reason.length) {
+                map.put(rule.reason[i++], 1);
+            }
+            int j = 0;
+            while (j < rule.result.length) {
+                map.put(rule.result[j++], 1);
+            }
+        }
+
+        for (int i = 0; i < header.length; i++) {
+            String predicate = header[i];
+            Integer result = map.get(predicate);
+            if (null == result) {//find ignored tuple predicate
+                ignoredIDs.add(i);
+            }
+        }
+
+        // 打印所有被ignore的ID
+        System.out.print("Ignored Tuple ID:");
+        for (int i : ignoredIDs) {
+            System.out.println(i + " ");
+        }
+        return ignoredIDs;
+    }
+
     public ArrayList<Integer> findIgnoredTuples(List<Tuple> rules) {
         ArrayList<Integer> ignoredIDs = new ArrayList<Integer>();
         HashMap<String, Integer> map = new HashMap<String, Integer>(header.length);
@@ -134,7 +164,7 @@ public class Rule {
     }
 
 
-    public static void partitionMLN(String file,ArrayList<String> rules, int partitionNum, String dataName) {
+    public static void partitionMLN(String file, ArrayList<String> rules, int partitionNum, String dataName) {
         String fileURL = groundRules(file, rules);
         /*
         HashMap<String, String> map = combineRulesFile(clean_fileURL, dirty_fileURL, dataName);
@@ -152,8 +182,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -170,8 +200,7 @@ public class Rule {
                         "City(valueCity)\n" +
                         "State(valueState)\n" +
                         "ZIPCode(valueZIPCode)\n" +
-                        "PhoneNumber(valuePhoneNumber)\n" +
-                        "Score(valueScore)\n\n");
+                        "PhoneNumber(valuePhoneNumber)\n\n");
                 dataBw[i].write("ProviderID,City,State,ZIPCode,PhoneNumber,Score\n");
             }
 
@@ -184,7 +213,7 @@ public class Rule {
             while (iter.hasNext()) {
                 if (number_i == number) {
                     number_i = 0;
-                    if(i != partitionNum - 1 ) {
+                    if (i != partitionNum - 1) {
                         i++;
                     }
                 }
@@ -196,7 +225,7 @@ public class Rule {
                 ArrayList<String> result = findMatchedTuple(rule, tuples);
                 for (String tuple : result) {
                     int index = tuple.indexOf(",");
-                    dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index+1));
+                    dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index + 1));
                 }
                 number_i++;
             }
@@ -214,12 +243,12 @@ public class Rule {
                     Map.Entry<Integer, String> entry = iterator.next();
                     dataBw[k].write(entry.getValue() + "\n");
                 }
-                dataBw[k].close();
+//                dataBw[k].close();
             }
 
             // 最后要关闭文件流
             for (int k = 0; k < partitionNum; k++) {
-//                dataBw[k].close();
+                dataBw[k].close();
                 rulesBw[k].close();
             }
         } catch (Exception e) {
@@ -248,8 +277,8 @@ public class Rule {
             HashMap<Integer, String> dataset[] = new HashMap[partitionNum];
             //初始化rule-new.txt和data-new.txt
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -282,7 +311,7 @@ public class Rule {
             while (iter.hasNext()) {
                 if (number_i == number) {
                     number_i = 0;
-                    if(i != partitionNum - 1 )
+                    if (i != partitionNum - 1)
                         i++;
                 }
                 Map.Entry<String, String> entry = iter.next();
@@ -293,7 +322,7 @@ public class Rule {
                 ArrayList<String> result = findMatchedTuple(rule, tuples);
                 for (String tuple : result) {
                     int index = tuple.indexOf(",");
-                    dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index+1));
+                    dataset[i].put(Integer.parseInt(tuple.substring(0, index)), tuple.substring(index + 1));
                 }
                 number_i++;
             }
@@ -400,7 +429,7 @@ public class Rule {
         //Write combined rules to a new File
         Iterator<Map.Entry<String, String>> iter = clean_map.entrySet().iterator();
         try {
-            String writeFile = "/home/zju/experiment/dataSet/" + dataName + "/groundRules.txt";
+            String writeFile = "/home/gcc/experiment/dataSet/" + dataName + "/groundRules.txt";
             File writefile = new File(writeFile);
             FileWriter fw = new FileWriter(writefile);
             BufferedWriter bw = new BufferedWriter(fw);
@@ -490,8 +519,8 @@ public class Rule {
             BufferedWriter rulesBw[] = new BufferedWriter[partitionNum];
             BufferedWriter dataBw[] = new BufferedWriter[partitionNum];
             for (int i = 0; i < partitionNum; i++) {
-                File rulesWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
-                File dataWriteFile = new File("/home/zju/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
+                File rulesWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/rules-new" + i + ".txt");
+                File dataWriteFile = new File("/home/gcc/experiment/dataSet/" + dataName + "/data-new" + i + ".txt");
                 if (!rulesWriteFile.exists()) {
                     rulesWriteFile.createNewFile();
                 }
@@ -591,6 +620,28 @@ public class Rule {
         return map;
     }
 
+    public static String[] getHead(String DBurl, String splitString) {
+        String[] header = null;
+        try {
+            FileReader reader;
+            reader = new FileReader(DBurl);
+            BufferedReader br = new BufferedReader(reader);
+            String line = null;
+            if ((line = br.readLine()) != null) {
+                header = line.substring(line.indexOf(",")+1).split(splitString);
+            } else {
+                System.err.println("Error: No header!");
+            }
+            br.close();
+            reader.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return header;
+    }
+
     public void getHeader(String DBurl, String splitString) {
         try {
             FileReader reader;
@@ -619,13 +670,12 @@ public class Rule {
      * @return List<String[]>
      * @throws IOException
      */
-    public List<Tuple> loadRules(String DBurl, String fileURL, String splitString) throws IOException {
+    public List<Tuple> loadRules(String fileURL, String splitString) throws IOException {
         System.out.println(">>> Getting Predicates.......");
         FileReader reader;
         String[] reason_predicates = null;
         String[] result_predicates = null;
         List<Tuple> list = new ArrayList<Tuple>();
-        getHeader(DBurl, splitString);
 
         try {
             reader = new FileReader(fileURL);
@@ -785,7 +835,7 @@ public class Rule {
      * @param outFile
      * @throws IOException
      */
-    public void formatEvidence(String outFile) throws IOException {
+    public void formatEvidence(String outFile, ArrayList<Integer> ignorIDs) throws IOException {
         String content = "";
         //Clean all the out content in 'outFile'
         FileWriter fw;
@@ -847,9 +897,25 @@ public class Rule {
 
         //记录一个属性下所有的值和对应的出现次数，和对应的 属性索引
         HashMap<String, IndexAndCount> map = new HashMap<>();
+        ArrayList<Integer> newHeaderList = new ArrayList<>(header.length);
         for (int i = 0; i < header.length; i++) {
+            newHeaderList.add(i);
+        }
+        for (int i = 0; i < ignorIDs.size(); i++) {
+            newHeaderList.remove(ignorIDs.get(i));
+        }
+
+
+        System.out.print("new Header = ");
+        for(Integer i:newHeaderList){
+            System.out.print(i+" ");
+        }
+        System.out.println();
+
+
+        for (int i = 0; i < newHeaderList.size(); i++) { //header和tupleList是从Rule.initData()中赋值得到的
             for (int k = 0; k < tupleList.size(); k++) {
-                String item = tupleList.get(k).getContext()[i];
+                String item = tupleList.get(k).getContext()[newHeaderList.get(i)];
                 if (!map.containsKey(item)) {
                     map.put(item, new IndexAndCount(1, i));
                 } else {
@@ -1150,11 +1216,10 @@ public class Rule {
             int index = 0; //tuple index
             if (ifHeader && (str = br.readLine()) != null) {  //The data has header
 
-                header = str.substring(str.indexOf(",") + 1).split(splitString);
+                header = str.split(splitString);
 
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
                     t.init(str, splitString, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;
@@ -1162,7 +1227,6 @@ public class Rule {
             } else { //如果没有header
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
                     t.init(str, splitString, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;

@@ -7,8 +7,8 @@ import java.util.*;
 
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
-    public static String sourceFile = baseURL + "HAI/HAI-100q.csv";
-    public static String sourceFile_hasID = baseURL + "HAI/HAI-100q-tail10q-10%error.csv";
+    public static String sourceFile = baseURL + "HAI/HAI-5q.csv";
+    public static String sourceFile_hasID = baseURL + "HAI/HAI-1q-10%error.csv";
     public static String trainFile = baseURL + "HAI/trainData.csv";
     public static String testFile = baseURL + "HAI/testData.csv";
     public static String sampleFile = baseURL + "HAI/HAI-100q-tail1q.csv";
@@ -354,8 +354,9 @@ public class Sampling {
     }
 
     public static void main(String[] args) {
+//        Main.setLineID(sourceFile,sourceFile_hasID);
 //        tailSample(90000,sourceFile,sampleFile);
-        int sampleNum = 5000;
+        int sampleNum = 600;
         int[] ignoredIDs = {2, 5};
         new Sampling().run(sourceFile_hasID, trainFile, testFile, sampleNum, ignoredIDs);
     }
