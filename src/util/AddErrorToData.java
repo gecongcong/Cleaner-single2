@@ -160,7 +160,7 @@ public class AddErrorToData {
 
             //区域划分 形成Domains
             String rulesURL = "/home/gcc/experiment/dataSet/HAI/rawData/rules.txt";
-            List<Tuple> rules = new Rule().loadRules(fileURL, rulesURL, ",");
+            List<Tuple> rules = new Rule().loadRules(rulesURL, ",");
             Domain d = new Domain();
             Domain.header = ("ProviderID,HospitalName,Address,City,State,ZIPCode," +
                     "CountyName,PhoneNumber,MeasureName,MeasureID,Score," +

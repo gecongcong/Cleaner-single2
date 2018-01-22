@@ -29,6 +29,58 @@ public class Rule {
     public Rule() {
     }
 
+    public ArrayList<Integer> findIgnoredIDs(List<Tuple> rules, String[] header) {
+        ArrayList<Integer> ignoredIDs = new ArrayList<Integer>();
+        HashMap<String, Integer> map = new HashMap<>(header.length);
+
+        for (Tuple rule : rules) {
+            int i = 0;
+            while (i < rule.reason.length) {
+                map.put(rule.reason[i++], 1);
+            }
+            int j = 0;
+            while (j < rule.result.length) {
+                map.put(rule.result[j++], 1);
+            }
+        }
+
+        for (int i = 0; i < header.length; i++) {
+            String predicate = header[i];
+            Integer result = map.get(predicate);
+            if (null == result) {//find ignored tuple predicate
+                ignoredIDs.add(i);
+            }
+        }
+
+        // 打印所有被ignore的ID
+        System.out.print("Ignored Tuple ID:");
+        for (int i : ignoredIDs) {
+            System.out.println(i + " ");
+        }
+        return ignoredIDs;
+    }
+
+    public static String[] getHead(String DBurl, String splitString) {
+        String[] header = null;
+        try {
+            FileReader reader;
+            reader = new FileReader(DBurl);
+            BufferedReader br = new BufferedReader(reader);
+            String line = null;
+            if ((line = br.readLine()) != null) {
+                header = line.substring(line.indexOf(",") + 1).split(splitString);
+            } else {
+                System.err.println("Error: No header!");
+            }
+            br.close();
+            reader.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return header;
+    }
 
     //
     public ArrayList<Integer> findIgnoredTuples(List<Tuple> rules) {
@@ -145,10 +197,10 @@ public class Rule {
             BufferedReader br = new BufferedReader(reader);
             String line;
             String header = br.readLine();//read header
-            header = header.substring(header.indexOf(",")+1);
+            header = header.substring(header.indexOf(",") + 1);
             while ((line = br.readLine()) != null && line.length() != 0) {
                 int index = line.indexOf(",");
-                String tuple = line.substring(index+1);
+                String tuple = line.substring(index + 1);
                 datalist.add(tuple);
             }
             br.close();
@@ -223,7 +275,7 @@ public class Rule {
         }
         //grounding rules and write to file '.gr'
         try {
-            String writeFile = filename.replaceAll("trainData.csv", "rules-new"+part_i+"\\.txt");
+            String writeFile = filename.replaceAll("trainData.csv", "rules-new" + part_i + "\\.txt");
             File writefile = new File(writeFile);
             if (!writefile.exists()) {
                 writefile.createNewFile();
@@ -237,12 +289,7 @@ public class Rule {
                     "PhoneNumber(valuePhoneNumber)\n" +
                     "MeasureID(valueMeasureID)\n" +
                     "MeasureName(valueMeasureName)\n" +
-                    "CountyName(valueCountyName)\n" +
-                    "Score(valueScore)\n" +
-                    "Address(valueAddress)\n" +
-                    "HospitalName(valueHospitalName)\n" +
-                    "MeasureStartDate(valueMeasureStartDate)\n" +
-                    "MeasureEndDate(valueMeasureEndDate)\n\n");
+                    "CountyName(valueCountyName)\n\n");
 
             Iterator<Map.Entry<String, GroundRule>> iter = map.entrySet().iterator();
             while (iter.hasNext()) {
@@ -762,13 +809,13 @@ public class Rule {
      * @return List<String[]>
      * @throws IOException
      */
-    public List<Tuple> loadRules(String DBurl, String fileURL, String splitString) throws IOException {
+    public List<Tuple> loadRules(String fileURL, String splitString) throws IOException {
         System.out.println(">>> Getting Predicates.......");
         FileReader reader;
         String[] reason_predicates = null;
         String[] result_predicates = null;
         List<Tuple> list = new ArrayList<Tuple>();
-        getHeader(DBurl, splitString);
+//        getHeader(DBurl, splitString);
 
         try {
             reader = new FileReader(fileURL);
@@ -928,7 +975,7 @@ public class Rule {
      * @param outFile
      * @throws IOException
      */
-    public void formatEvidence(String outFile) throws IOException {
+    public void formatEvidence(String outFile, ArrayList<Integer> ignorIDs) throws IOException {
         String content = "";
         //Clean all the out content in 'outFile'
         FileWriter fw;
@@ -990,11 +1037,26 @@ public class Rule {
 
         //记录一个属性下所有的值和对应的出现次数，和对应的 属性索引
         HashMap<String, IndexAndCount> map = new HashMap<>();
+        ArrayList<Integer> newHeaderList = new ArrayList<>(header.length);
+
         for (int i = 0; i < header.length; i++) {
+            newHeaderList.add(i);
+        }
+
+        for (int i = 0; i < ignorIDs.size(); i++) {
+            newHeaderList.remove(ignorIDs.get(i));
+        }
+        System.out.print("new Header = ");
+        for (Integer i : newHeaderList) {
+            System.out.print(i + " ");
+        }
+        System.out.println();
+
+        for (int i = 0; i < newHeaderList.size(); i++) {
             for (int k = 0; k < tupleList.size(); k++) {
-                String item = tupleList.get(k).getContext()[i];
+                String item = tupleList.get(k).getContext()[newHeaderList.get(i)];
                 if (!map.containsKey(item)) {
-                    map.put(item, new IndexAndCount(1, i));
+                    map.put(item, new IndexAndCount(1, newHeaderList.get(i)));
                 } else {
                     map.get(item).increase();
                 }
@@ -1295,11 +1357,12 @@ public class Rule {
             int index = 0; //tuple index
             if (ifHeader && (str = br.readLine()) != null) {  //The data has header
 
-                header = str.substring(str.indexOf(",") + 1).split(splitString);
+//                header = str.substring(str.indexOf(",") + 1).split(splitString);
+                header = str.split(splitString);
 
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
+//                    str = str.substring(str.indexOf(",") + 1);
                     t.init(str, splitString, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;
@@ -1307,7 +1370,7 @@ public class Rule {
             } else { //如果没有header
                 while ((str = br.readLine()) != null) {
                     Tuple t = new Tuple();
-                    str = str.substring(str.indexOf(",") + 1);
+//                    str = str.substring(str.indexOf(",") + 1);
                     t.init(str, splitString, index);//init the tuple,split with ","
                     tupleList.add(t);
                     index++;

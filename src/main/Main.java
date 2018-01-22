@@ -17,6 +17,7 @@ public class Main {
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
     static ArrayList<Integer> ignoredIDs = null;
+    public static String rulesURL = baseURL + "/HAI/rawData/rules.txt";
     //public static String dataURL = baseURL + "/HAI/HAI-5q-10%-error.csv";
 
 
@@ -121,7 +122,7 @@ public class Main {
         }
     }
 
-    public static void learnwt(String[] args) throws SQLException, IOException {
+    public static void learnwt(String[] args,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
         String dataURL = args[1];
 
         double startTime = System.currentTimeMillis();    //获取开始时间
@@ -137,7 +138,7 @@ public class Main {
 
         boolean ifHeader = true;
         //List<Tuple> rules = rule.loadRules(dataURL, rulesURL, splitString);
-        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用
+        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用,同时赋予全局的Header值
         //ArrayList<Tuple> newTupleList = rule.tupleList;
         //dataSet是所有数据的集合，我要从里面拿出
         //ignoredIDs = rule.findIgnoredTuples(rules);
@@ -193,7 +194,7 @@ public class Main {
 
         for (int i = 0; i < batch; i++) {
             //rule.resample(newTupleList,sampleSize);
-            rule.formatEvidence(evidence_outFile);
+            rule.formatEvidence(evidence_outFile,ignoredIDs);
 
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
@@ -202,7 +203,7 @@ public class Main {
         }
     }
 
-    public static HashMap<Integer, String[]> main(String[] args) throws SQLException, IOException {
+    public static HashMap<Integer, String[]> main(String[] args, String[] header,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
 
         String dataURL = baseURL + "/" + args[0] + "/" + args[1];
         String rulesURL = baseURL + "/" + args[0] + "/rules.txt";
@@ -216,11 +217,12 @@ public class Main {
 
         String splitString = ",";
         boolean ifHeader = true;
-        List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL, splitString);
+        List<Tuple> rules = rule.loadRules(rulesURL, splitString);
         rule.initData(tmp_dataURL, splitString, ifHeader);
-        ignoredIDs = rule.findIgnoredTuples(rules);
+        domain.header = header;
+        /*ignoredIDs = rule.findIgnoredTuples(rules);
         domain.header = rule.header;
-        header = rule.header;
+        header = rule.header;*/
 
 
         /*
