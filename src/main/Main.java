@@ -16,8 +16,7 @@ public class Main {
     static String baseURL = "/home/gcc/experiment/dataSet";    // experiment baseURL
     //static String rootURL = System.getProperty("user.dir"); //Project BaseURL
     static String cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";
-//    static ArrayList<Integer> ignoredIDs = null;
-    public static String rulesURL = baseURL + "/HAI/rules.txt";
+    static ArrayList<Integer> ignoredIDs = null;
     //public static String dataURL = baseURL + "/HAI/HAI-5q-10%-error.csv";
 
 
@@ -100,7 +99,6 @@ public class Main {
             String str = "";
             int index = 0;
             while ((str = br.readLine()) != null) {
-                str = str.replaceAll(" ", "");
                 StringBuffer sb = new StringBuffer(str);
                 if (index == 0) {
                     sb.insert(0, "ID,");
@@ -123,23 +121,23 @@ public class Main {
         }
     }
 
-    public static void learnwt(String[] args,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
-        String dataURL = args[0];
+    public static void learnwt(String[] args) throws SQLException, IOException {
+        String dataURL = args[1];
 
         double startTime = System.currentTimeMillis();    //获取开始时间
 
         Rule rule = new Rule();
         //Domain domain = new Domain();
-        String evidence_outFile = baseURL + "/HAI/evidence.db";
+        String evidence_outFile = baseURL + "/" + args[0] + "/evidence.db";
 
         //System.out.println("rootURL=" + rootURL);
-        cleanedFileURL = baseURL + "/RDBSCleaner_cleaned.txt";//存放清洗后的数据集
+        cleanedFileURL = baseURL + "/" + args[0] + "RDBSCleaner_cleaned.txt";//存放清洗后的数据集
         System.out.println("dataURL = " + dataURL);
         String splitString = ",";
 
         boolean ifHeader = true;
         //List<Tuple> rules = rule.loadRules(dataURL, rulesURL, splitString);
-        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用,同时赋予全局的Header值
+        rule.initData(dataURL, splitString, ifHeader);//生成TupleList 供formatEvidence()使用
         //ArrayList<Tuple> newTupleList = rule.tupleList;
         //dataSet是所有数据的集合，我要从里面拿出
         //ignoredIDs = rule.findIgnoredTuples(rules);
@@ -157,22 +155,22 @@ public class Main {
         //list.add(nopart_args);
         String mln_args = "-i";
         list.add(mln_args);
-        String mlnFileURL = baseURL + "/HAI/prog-new.mln";//prog.mln
-        mlnFileURL = args.length > 0 ? args[1] : mlnFileURL;
+//        String mlnFileURL = baseURL + "/HAI/prog-new.mln";//prog.mln
+        String mlnFileURL = args[2];
         // 根据输入的参数来跑
         list.add(mlnFileURL);
         String evidence_args = "-e";
         list.add(evidence_args);
-        String evidenceFileURL = baseURL + "/HAI/evidence.db"; //samples/smoke/
+        String evidenceFileURL = baseURL + "/" + args[0] + "/evidence.db"; //samples/smoke/
         list.add(evidenceFileURL);
         String queryFile_args = "-queryFile";
         list.add(queryFile_args);
-        String queryFileURL = baseURL + "/HAI/query.db";
+        String queryFileURL = baseURL + "/" + args[0] + "/query.db";
         list.add(queryFileURL);
         String outFile_args = "-r";
         list.add(outFile_args);
-        String weightFileURL = baseURL + "/HAI/out.txt";
-        weightFileURL = args.length > 0 ? args[2] : weightFileURL;
+//        String weightFileURL = baseURL + "/HAI/out.txt";
+        String weightFileURL = args[3];
         list.add(weightFileURL);
         String noDropDB = "-keepData";
         list.add(noDropDB);
@@ -195,7 +193,7 @@ public class Main {
 
         for (int i = 0; i < batch; i++) {
             //rule.resample(newTupleList,sampleSize);
-            rule.formatEvidence(evidence_outFile,ignoredIDs);
+            rule.formatEvidence(evidence_outFile);
 
             //入口：参数学习 weight learning——using 'Diagonal Newton discriminative learning'
             MLNmain.main(learnwt);
@@ -204,11 +202,10 @@ public class Main {
         }
     }
 
-    public static HashMap<Integer, String[]> main(String[] args, String[] header,ArrayList<Integer> ignoredIDs) throws SQLException, IOException {
+    public static HashMap<Integer, String[]> main(String[] args) throws SQLException, IOException {
 
         String dataURL = baseURL + "/" + args[0] + "/" + args[1];
-//        setLineID(dataURL, dataURL.replaceAll(".csv", "-hasID.csv"));//给数据集标序号Tuple ID
-//        String tmp_dataURL = dataURL.replaceAll(".csv", "-hasID.csv");
+        String rulesURL = baseURL + "/" + args[0] + "/rules.txt";
         String tmp_dataURL = dataURL;
         Rule rule = new Rule();
         Domain domain = new Domain();
@@ -219,11 +216,11 @@ public class Main {
 
         String splitString = ",";
         boolean ifHeader = true;
-        List<Tuple> rules = rule.loadRules(rulesURL, splitString);
+        List<Tuple> rules = rule.loadRules(tmp_dataURL, rulesURL, splitString);
         rule.initData(tmp_dataURL, splitString, ifHeader);
-//        ignoredIDs = rule.findIgnoredTuples(rules);
-        domain.header = header;
-//        header = rule.header;
+        ignoredIDs = rule.findIgnoredTuples(rules);
+        domain.header = rule.header;
+        header = rule.header;
 
 
         /*
@@ -232,8 +229,6 @@ public class Main {
         int batch = 1; // 可调节
         List<HashMap<String, Double>> attributesPROBList = new ArrayList<>();
         for (int i = 0; i < batch; i++) {
-            //rule.formatEvidence(evidence_outFile);
-
             //读取参数学习得到的团权重，存入HashMap
             HashMap<String, Double> attributesPROB = Rule.loadRulesFromFile(baseURL + "/" + args[0] + "/out.txt");
             attributesPROBList.add(attributesPROB);
@@ -243,15 +238,14 @@ public class Main {
         * 清洗阶段
         * */
         //区域划分 形成Domains
-        /*String tmp_dataURL1 = tmp_dataURL.replaceAll("\\.csv","\\-hasID.csv");
-        setLineID(tmp_dataURL,tmp_dataURL1);*/
         domain.init(tmp_dataURL, splitString, ifHeader, rules);
 
         //domain.printDomainContent(domain.domains);
 
-        //对每个Domain执行group by key操作
-        domain.groupByKey(domain.domains, rules);
+        //对每个Domain执行group by key操作,返回不被group到的outlier tuples
+        List<List<Tuple>> domain_outlier = domain.groupByKey(domain.domains, rules);
 
+        domain.smoothOutlierToGroup(domain_outlier, domain.Domain_to_Groups, domain.dataSet, attributesPROBList);
         //根据MLN的概率修正错误数据
         domain.correctByMLN(domain.Domain_to_Groups, attributesPROBList, domain.header, domain.domains);
 
@@ -282,7 +276,7 @@ public class Main {
         return domain.dataSet;
     }
 
-    public static void writeToFile( String[] header, ArrayList<String> list, String outFile){
+    public static void writeToFile(String[] header, ArrayList<String> list, String outFile) {
         File file = new File(outFile);
         FileWriter fw = null;
         BufferedWriter writer = null;
@@ -301,17 +295,17 @@ public class Main {
             fw = new FileWriter(file);
             writer = new BufferedWriter(fw);
 
-            writer.write("ID,"+Arrays.toString(header)
+            writer.write("ID," + Arrays.toString(header)
                     .replaceAll("[\\[\\]]", "")
                     .replaceAll(" ", ""));
             writer.newLine();//换行
 
-            for(String str: list){
+            for (String str : list) {
                 writer.write(str);
                 writer.newLine();
             }
             writer.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -346,13 +340,21 @@ public class Main {
             writer = new BufferedWriter(fw);
 
 
-            writer.write("ID,"+Arrays.toString(header)
+            writer.write("ID," + Arrays.toString(header)
                     .replaceAll("[\\[\\]]", "")
                     .replaceAll(" ", ""));
             writer.newLine();//换行
 
             for (Map.Entry<Integer, String[]> map : list) {
-                String line = Arrays.toString(map.getValue()).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
+
+                String[] value = map.getValue();
+                String line = "";
+                for (int i = 0; i < value.length; i++) {
+                    if(i!=value.length-1){
+                        line += value[i]+",";
+                    }else line += value[i];
+                }
+//                String line = Arrays.toString(map.getValue()).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
                 writer.write(map.getKey() + "," + line);
                 writer.newLine();//换行
             }

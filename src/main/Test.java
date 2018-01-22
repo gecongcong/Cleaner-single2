@@ -3,7 +3,6 @@ package main;
 import data.Domain;
 import data.GroundRule;
 import data.Rule;
-import data.Tuple;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -54,14 +53,13 @@ public class Test {
 //                            .replaceAll("\\)","");
                 String[] values = mln.split(" v ");
                 for (int i = 0; i < values.length; i++) {
-                    values[i] = values[i].replaceAll(" ", "")
-                            .replaceAll(".*\\(", "")
+                    values[i] = values[i].replaceAll(".*\\(", "")
                             .replaceAll("\\)", "");
                 }
                 Arrays.sort(values);//排序 方便比较
                 int num = 0;
                 for (int i = 0; i < list.size(); i++) {
-                    String[] tuple = list.get(i).replaceAll(" ", "").split(",");
+                    String[] tuple = list.get(i).split(",");
                     Arrays.sort(tuple);//排序 方便比较
 
                     int count = 0;
@@ -170,7 +168,7 @@ public class Test {
             int key = 0; //tuple index
             br.readLine();
             while ((line = br.readLine()) != null && line.length() != 0) {
-                context.add(line.replaceAll(" ", ""));
+                context.add(line);
             }
             br.close();
 
@@ -196,50 +194,11 @@ public class Test {
         return sample_ground_data;
     }
 
-    public static void evaluateByCell(ArrayList<String> ground_data, String cleanedURL, String dirtyURL) {
-        System.out.println("evaluate by cell");
-        ArrayList<String> cleaned_data = read(cleanedURL);
-        ArrayList<String> dirty_data = read(dirtyURL);
-        int correct_update_num = 0;
-        int total_error_num = 0;
-        int total_update_num = 0;
-        int over_correct_num = 0;
-        double recall;
-        double precision;
-
-        System.err.print("no cleaned Line: \n[");
-        for (int i = 0; i < ground_data.size(); i++) {
-            String[] current_ground = ground_data.get(i).split(",");
-            String[] current_dirty = dirty_data.get(i).split(",");
-            String[] current_clean = cleaned_data.get(i).split(",");
-
-            for (int j = 0; j < current_clean.length; j++) {
-                if (!current_ground[j].equals(current_dirty[j])) {
-                    total_error_num++;
-                }
-                if (!current_clean[j].equals(current_dirty[j])) {
-                    total_update_num++;
-                    if(current_clean[j].equals(current_ground[j])){
-                        correct_update_num++;
-                    }
-                }
-            }
-        }
-        System.err.println("]");
-        System.out.println("\ntotal error number = " + total_error_num);
-        recall = (double) correct_update_num / total_error_num;
-        precision = (double) correct_update_num / total_update_num;
-        System.out.println("\nRecall = " + recall);
-        System.out.println("\nPrecision = " + precision);
-        System.out.println("\nF1 = " + 2 * (precision * recall) / (precision + recall));
-    }
-
     /**
      * Recall is the ratio of correctly updated attributes to the total number of errors.
      * Precision is the ratio of correctly updated attributes (exact matches) to the total number of updates
      */
     public static void evaluate(ArrayList<String> ground_data, String cleanedURL, String dirtyURL) {
-        System.out.println("evaluate by tuple");
         ArrayList<String> cleaned_data = read(cleanedURL);
         ArrayList<String> dirty_data = read(dirtyURL);
         int correct_update_num = 0;
@@ -249,7 +208,7 @@ public class Test {
         double recall;
         double precision;
 
-        System.err.print("no cleaned Line: \n[");
+        System.err.print("no cleaned Tuple: \n[");
         for (int i = 0; i < ground_data.size(); i++) {
             String current_ground = ground_data.get(i);
             String current_dirty = dirty_data.get(i);
@@ -257,7 +216,7 @@ public class Test {
             if (!current_ground.equals(current_dirty)) {
                 total_error_num++;
                 if (!current_clean.equals(current_ground)) {
-                    System.err.print((i + 2) + " ");  //no cleaned tuple:
+                    System.err.print(current_clean.substring(0,current_clean.indexOf(",")) + " ");  //no cleaned tuple:
 //                    System.out.println("current_ground = " + current_ground);
 //                    System.out.println("current_dirty = " + current_dirty);
 //                    System.out.println("current_clean = " + current_clean);
@@ -402,35 +361,30 @@ public class Test {
             /*Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2],
                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],
                     rules, partitionNum, args[0]);*/
-            System.out.println("Begin Partition MLNs into '" + partitionNum + "' parts.");
-            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
-
+            System.out.println(">>> Begin Partition MLNs into '" + partitionNum + "' parts.");
+            Rule.partitionData("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1],partitionNum, args[0], rules);
+//            Rule.partitionMLN("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[1], rules, partitionNum, args[0]);
+            System.out.println(">>> Partition MLNs Finished!");
             ArrayList<String> newMLNs = new ArrayList<>();
             ArrayList<String> dataURLs = new ArrayList<>();
-
-            String DBurl = Main.baseURL + "/" + args[0] + "/" + args[2];
-            String[] header = new Rule().getHead(DBurl, ",");
-            List<Tuple> ruleList = new Rule().loadRules(Main.rulesURL, ",");
-            ArrayList<Integer> ignoredIDs = new Rule().findIgnoredIDs(ruleList,header);
 
             //训练阶段
             double startTime = System.currentTimeMillis();    //获取开始时间
             for (int i = 0; i < partitionNum; i++) {
                 System.out.println("************ PARTITION" + i + " ************");
-                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new" + i + ".txt";
-                String dataWriteFile = "/home/gcc/experiment/dataSet/HAI/data-new" + i + ".txt";
-                String outFile = "/home/gcc/experiment/dataSet/HAI/out-" + i + ".txt";
-                String mlnArgs[] = {dataWriteFile, rulesWriteFile, outFile};
-                Main.learnwt(mlnArgs,ignoredIDs); //参数训练，最后生成[n=partitionNum]个out.txt文件
+                String dataWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/data-new" + i + ".txt";
+                String rulesWriteFile = "/home/gcc/experiment/dataSet/" + args[0] + "/rules-new" + i + ".txt";
+                String outFile = "/home/gcc/experiment/dataSet/" + args[0] + "/out-" + i + ".txt";
+                String mlnArgs[] = {args[0],dataWriteFile, rulesWriteFile, outFile};
+                Main.learnwt(mlnArgs); //参数训练，最后生成[n=partitionNum]个out.txt文件
                 newMLNs.add(outFile);
                 dataURLs.add(dataWriteFile);
             }
 
-            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/HAI/out.txt");
-
+            normalizationMLN(newMLNs, dataURLs, "/home/gcc/experiment/dataSet/" + args[0] + "/out.txt");
             //清洗阶段
             String mlnArgs[] = {args[0], args[2]};
-            HashMap<Integer, String[]> dataSet = Main.main(mlnArgs,header,ignoredIDs);
+            HashMap<Integer, String[]> dataSet = Main.main(mlnArgs);
             dataSetList.add(dataSet);
 //            for(int i = 0; i < partitionNum; i++) {
 //                String rulesWriteFile = "/home/gcc/experiment/dataSet/HAI/rules-new"+i+".txt";
@@ -457,8 +411,8 @@ public class Test {
             double totalTime = (endTime - startTime) / 1000;
             DecimalFormat df = new DecimalFormat("#.00");
             System.out.println("Total Time: " + df.format(totalTime) + "s");
-            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI.csv", "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
-            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
+//            setLineID("/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_truth.csv", "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-hasID.csv");
+            ArrayList<String> ground_data = pickData(dataSet, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "HAI-3q-hasID.csv");
             ground_data.sort(new Comparator<String>() {
                 @Override
                 public int compare(String o1, String o2) {
@@ -476,7 +430,8 @@ public class Test {
             Main.writeToFile(Domain.header, ground_data, "/home/gcc/experiment/dataSet/" + args[0] + "/" + "ground_sampleData.csv");
 
             evaluate(ground_data, cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
-//            evaluateByCell(ground_data, cleanedFileURL, "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);
+            /*evaluate("/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2], cleanedFileURL,
+                     "/home/gcc/experiment/dataSet/" + args[0] + "/" + args[2]);*/
         } catch (Exception e) {
             e.printStackTrace();
         }

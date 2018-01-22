@@ -18,6 +18,8 @@ import spellchecker.SpellChecker;
 public class Domain {
 
     public static double MIN_DOUBLE = 0.0001;
+    public static double MIN_NEGNATIVE = -9;
+    public static double MAX_NEGNATIVE = -99999999;
     public static double MAX_DOUBLE = 9999;
 
     public static double THRESHOLD = 0.01;
@@ -111,7 +113,7 @@ public class Domain {
                 while ((str = br.readLine()) != null) {
                     //	System.out.println(str);
                     //dataSet.add(str.split(splitString));
-                    str = str.replaceAll(" ", "");
+//                    str = str.replaceAll(" ", "");
                     key = Integer.parseInt(str.substring(0, str.indexOf(",")));
                     String[] tuple = str.substring(str.indexOf(",") + 1).split(",");
                     dataSet.put(key, tuple);
@@ -319,19 +321,19 @@ public class Domain {
                             Tuple tuple2 = entry2.getValue();
                             String[] content2 = tuple2.getContext();
                             String[] reason2 = tuple2.reason;
-                            String content1_str = Arrays.toString(content1)
+                            /*String content1_str = Arrays.toString(content1)
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
                                     .replaceAll(" ", "");
                             String content2_str = Arrays.toString(content2)
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
-                                    .replaceAll(" ", "");
+                                    .replaceAll(" ", "");*/
                             JaroWinkler jw = new JaroWinkler();
                             int dis = 0;
                             Cosine cosine = new Cosine();
                             for (int j = 0; j < content1.length; j++) {
-                                dis+=cosine.distance(content1[j],content2[j]);
+                                dis += SpellChecker.distance(content1[j], content2[j]);
                             }
                             if (Arrays.equals(reason1, reason2)) {// ||  ||
                                 group.put(m, tuple2);
@@ -386,18 +388,20 @@ public class Domain {
             List<Tuple> outliers = domain_outlier.get(i);
 
             for (Tuple outlierT : outliers) {
-//                String[] out_content = dataSet.get(outlierT.tupleID);
-                String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
+                String[] s_out_content = dataSet.get(outlierT.tupleID);
+                String out_content = "";
+                for (int j = 0; j < s_out_content.length; j++) {
+                    if (j != s_out_content.length - 1) {
+                        out_content += s_out_content[j] + ",";
+                    } else out_content += s_out_content[j];
+                }
+                /*String out_content = Arrays.toString(dataSet.get(outlierT.tupleID))
                         .replaceAll("\\[", "")
                         .replaceAll("]", "")
-                        .replaceAll(" ", "");
+                        .replaceAll(" ", "");*/
                 double minDis = MAX_DOUBLE;
                 int minID = 0;
                 int mingi = -1;
-
-                if (outlierT.tupleID == 521) {
-                    System.out.println();
-                }
 
                 class DistanceInfo {
                     int tupleID;
@@ -433,10 +437,19 @@ public class Domain {
                         }
                     }*/
 //                    String[] curr_content = entry.getValue();
-                    String curr_content = Arrays.toString(entry.getValue())
+
+                    String[] value = entry.getValue();
+                    String curr_content = "";
+                    for (int j = 0; j < value.length; j++) {
+                        if (j != value.length - 1) {
+                            curr_content += value[j] + ",";
+                        } else curr_content += value[j];
+                    }
+
+                    /*String curr_content = Arrays.toString(entry.getValue())
                             .replaceAll("\\[", "")
                             .replaceAll("]", "")
-                            .replaceAll(" ", "");
+                            .replaceAll(" ", "");*/
 
 
                     Cosine cosine = new Cosine();
@@ -448,7 +461,7 @@ public class Domain {
                         }
                     }*/
                     t_dis = cosine.distance(out_content, curr_content);
-                    if (t_dis > 0.2) continue;
+                    if (t_dis > 0.1) continue;
 
                     disList.add(new DistanceInfo(key, t_dis));
                 }
@@ -478,10 +491,18 @@ public class Domain {
                     Iterator<Entry<Integer, Tuple>> it = group.entrySet().iterator();
                     while (it.hasNext()) {
                         Entry<Integer, Tuple> entry = it.next();
-                        String content = Arrays.toString(entry.getValue().getContext())
+
+                        String[] value = entry.getValue().getContext();
+                        String content = "";
+                        for (int j = 0; j < value.length; j++) {
+                            if (j != value.length - 1) {
+                                content += value[j] + ",";
+                            } else content += value[j];
+                        }
+                        /*String content = Arrays.toString(entry.getValue().getContext())
                                 .replaceAll("\\[", "")
                                 .replaceAll("]", "")
-                                .replaceAll(" ", "");
+                                .replaceAll(" ", "");*/
                         if (null == reverse_group.get(content)) {
                             reverse_group.put(content, 1);
                         } else {
@@ -501,10 +522,18 @@ public class Domain {
                     for (; gi < groupList.size(); gi++) {
                         HashMap<Integer, Tuple> group = groupList.get(gi);
                         if (group.containsKey(tupleID)) {
-                            String content = Arrays.toString(group.get(tupleID).getContext())
+
+                            String[] value = group.get(tupleID).getContext();
+                            String content = "";
+                            for (int j = 0; j < value.length; j++) {
+                                if (j != value.length - 1) {
+                                    content += value[j] + ",";
+                                } else content += value[j];
+                            }
+                            /*String content = Arrays.toString(group.get(tupleID).getContext())
                                     .replaceAll("\\[", "")
                                     .replaceAll("]", "")
-                                    .replaceAll(" ", "");
+                                    .replaceAll(" ", "");*/
                             int num = reverse_group_list.get(gi).get(content);
                             t_cost = dis / num;
                             break;
@@ -554,7 +583,7 @@ public class Domain {
         } else {
             distance = 0;
             for (int i = 0; i < A.length; i++) {
-                distance += cosine.distance(A[i], B[i]);
+                distance += SpellChecker.distance(A[i], B[i]);
             }
         }
 
@@ -564,8 +593,8 @@ public class Domain {
     public HashMap<String, Candidate> spellCheck(HashMap<Integer, Tuple> group) {//返回每个tuple被替换的最小cost
         //System.out.println("--------spellCheck-------");
 
-        HashMap<String, Candidate> cMap = new HashMap<String, Candidate>();
-        ArrayList<Tuple2> tupleList = new ArrayList<Tuple2>();
+        HashMap<String, Candidate> cMap = new HashMap<>();
+        ArrayList<Tuple2> tupleList = new ArrayList<>();
         Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
 
         //put tuples into ArrayList
@@ -602,7 +631,7 @@ public class Domain {
                 NormalizedLevenshtein l = new NormalizedLevenshtein();
                 JaroWinkler jw = new JaroWinkler();
                 QGram qGram = new QGram();*/
-                double distance = cosine.distance(tuple, tmp_candidate);
+                double distance = SpellChecker.distance(tuple, tmp_candidate);
                 int N = replaceNCost(tmp_candidate, tupleList);
                 double tmp_cost = distance * N;
                 if (tmp_cost < dis) {
@@ -643,13 +672,18 @@ public class Domain {
                     HashMap<String, Double> attributesPROB = attributesPROBList.get(t);
 
                     Iterator<Entry<Integer, Tuple>> iter = group.entrySet().iterator();
-                    double pre_cost = 0.0f;
+                    double pre_cost = MAX_NEGNATIVE;
                     int tupleID = 0;
 
                     //遍历group
                     while (iter.hasNext()) {
                         Entry<Integer, Tuple> current = iter.next();
                         Tuple tuple = current.getValue();
+
+                        if(tuple.tupleID==1728){
+                            System.out.println();
+                        }
+
                         int length = tuple.getContext().length;
                         String[] tmp_context = new String[length];
                         System.arraycopy(tuple.getContext(), 0, tmp_context, 0, length);
@@ -660,7 +694,7 @@ public class Domain {
                         Candidate c = cMap.get(values);
                         String candidate = c.candidate;
                         if (prob == null) {
-                            prob = MIN_DOUBLE;    //说明这个团只在数据集里出现过一次，姑且认为该团不具代表性，概率置0
+                            prob = MIN_DOUBLE;    //说明这个团只在数据集里出现过一次，姑且认为该团不具代表性，概率=MIN_DOUBLE
                         }
                         double cost;
                         if (c.cost == 0) {
@@ -1110,8 +1144,6 @@ public class Domain {
             double prob = -1;
             Tuple fixTuple = new Tuple();
             boolean ischange = false;
-            if (id == 19)
-                System.out.println("debug here");
 
             for (int k = 0; k < domains.size(); k++) {
                 Tuple candidateTuple = new Tuple();

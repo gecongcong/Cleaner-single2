@@ -7,10 +7,11 @@ import java.util.*;
 
 public class Sampling {
     public static String baseURL = "/home/gcc/experiment/dataSet/";    // source file baseURL
-    public static String sourceFile_hasID = baseURL + "synthetic-car/fulldb-1q-hasID-10%error.csv";//fulldb-1q-hasID-10%error
-    public static String sampleFile = baseURL + "synthetic-car/ground_truth-1q-hasID.csv";
-    public static String trainFile = baseURL + "synthetic-car/trainData.csv";
-    public static String testFile = baseURL + "synthetic-car/testData.csv";
+    public static String sourceFile = baseURL + "HAI/rawData/HAI-HOSP.csv";//fulldb-1q-hasID-10%error
+    public static String sourceFile_hasID = baseURL + "HAI/rawData/HAI-HOSP-hasID.csv";//fulldb-1q-hasID-10%error
+    public static String sampleFile = baseURL + "HAI/rawData/HAI-3q-10%error(1).csv";
+    public static String trainFile = baseURL + "HAI/rawData/trainData.csv";
+    public static String testFile = baseURL + "HAI/rawData/testData.csv";
     public static HashMap<String, ArrayList<Integer>> dataMap = new HashMap<>();//存放对应这条String的所有元组ID
 
     class TmpTuple {
@@ -71,8 +72,16 @@ public class Sampling {
             while ((line = br.readLine()) != null && line.length() != 0) {
                 lineID = Integer.parseInt(line.substring(0, line.indexOf(",")));
                 String[] tuple = line.substring(line.indexOf(",") + 1).split(",");
-                String content = Arrays.toString(tuple).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
-                dataSet.put(lineID,content);
+
+                String content = "";
+                for (int i = 0; i < tuple.length; i++) {
+                    if (i != tuple.length - 1) {
+                        content += tuple[i] + ",";
+                    } else
+                        content += tuple[i];
+                }
+//                String content = Arrays.toString(tuple).replaceAll("[\\[\\]]", "").replaceAll(" ", "");
+                dataSet.put(lineID, content);
 
                 String[] newTuple = new String[tuple.length - ignoredIDs.length];
 
@@ -85,10 +94,18 @@ public class Sampling {
                     newTuple[i] = tuple[new_ids[i]];
                 }
 
-                String newLine = Arrays.toString(newTuple)
+                String newLine = "";
+                for (int i = 0; i < newTuple.length; i++) {
+                    if (i != newTuple.length - 1) {
+                        newLine += newTuple[i] + ",";
+                    } else
+                        newLine += newTuple[i];
+                }
+
+               /* String newLine = Arrays.toString(newTuple)
                         .replaceAll("\\[", "")
                         .replaceAll("]", "")
-                        .replaceAll(" ", "");
+                        .replaceAll(" ", "");*/
                 if (!dataMap.containsKey(newLine)) {
                     ArrayList<Integer> linkIDs = new ArrayList<>();
                     linkIDs.add(lineID);
@@ -107,11 +124,12 @@ public class Sampling {
 
         //do sampling
         double ratio = (double) sampleNum / dataSet.size();
-        ArrayList<Integer> trainIDs = new ArrayList<>();    //训练集tupleIDs
+        HashSet<Integer> trainIDs = new HashSet<>();    //训练集tupleIDs
         int minID;
         int maxID;
         Iterator<Map.Entry<String, ArrayList<Integer>>> iter = dataMap.entrySet().iterator();
         while (iter.hasNext()) {
+            System.out.println("123");
             Map.Entry<String, ArrayList<Integer>> entry = iter.next();
             ArrayList<Integer> linkedIDs = entry.getValue();
 
@@ -137,8 +155,11 @@ public class Sampling {
             HashMap<Integer, Boolean> bool = new HashMap(sample_size);
             while (i < sample_size) {
                 do {
-
-                    random_result = linkedIDs.get(getRandomIndex(sample_size));//采样得到random_result这个tupleID
+                    System.out.println("sample size = " + sample_size);
+                    if (sample_size < 2) {
+                        random_result = linkedIDs.get(0);
+                    } else
+                        random_result = linkedIDs.get(getRandomIndex(sample_size));//采样得到random_result这个tupleID
                     trainIDs.add(random_result);
                 } while (bool.containsKey(random_result));
                 bool.put(random_result, true);
@@ -149,17 +170,11 @@ public class Sampling {
         }
         //得到与训练集互斥的测试集
         Iterator<Map.Entry<Integer, String>> iter2 = dataSet.entrySet().iterator();
-        while(iter2.hasNext()){
+        while (iter2.hasNext()) {
             boolean flag = false;
             Map.Entry<Integer, String> entry = iter2.next();
             int tupleID = entry.getKey();
-            for (int trainID : trainIDs) {
-                if (tupleID == trainID) {
-                    flag = true;
-                    break;
-                }
-            }
-            if (!flag) {
+            if(!trainIDs.contains(tupleID)){
                 testData.add(new TmpTuple(tupleID, dataSet.get(tupleID)));
             }
         }
@@ -167,9 +182,9 @@ public class Sampling {
         Collections.sort(testData, new Comparator<TmpTuple>() {
             @Override
             public int compare(TmpTuple o1, TmpTuple o2) {
-                if(o1.tupleID>o2.tupleID){
+                if (o1.tupleID > o2.tupleID) {
                     return 1;
-                }else{
+                } else {
                     return -1;
                 }
             }
@@ -353,9 +368,10 @@ public class Sampling {
     }
 
     public static void main(String[] args) {
-//        headSample(1500,sourceFile_hasID,sampleFile);
-        int sampleNum = 900;
-        int[] ignoredIDs = {0,3,4,5,6,7};
-        new Sampling().run(sourceFile_hasID, trainFile, testFile, sampleNum, ignoredIDs);
+//        Main.setLineID(sourceFile,sourceFile_hasID);
+//        headSample(3000,sourceFile_hasID,sampleFile);
+        int sampleNum = 1500;
+        int[] ignoredIDs = {0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12};
+        new Sampling().run(sampleFile, trainFile, testFile, sampleNum, ignoredIDs);
     }
 }
